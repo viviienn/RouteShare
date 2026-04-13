@@ -29,6 +29,22 @@
 
 **RouteShare** is an open-source tool designed for quickly sketching delivery, driving, or walking routes and sharing them via a unique, mobile-responsive link. Whether you're coordinating with a driver or planning a run, RouteShare makes geographic communication instant and effortless.
 
+## Why?
+**Important**
+Tired of delivery drivers getting lost because default maps took them to the wrong entrance? RouteShare fixes that. Just drop a pin for the driver, drop one for yourself, and draw the exact path they need to take. Generate a link, text it over, and get your food while it's still hot.
+
+RouteShare as a Standalone Proof-of-Concept
+
+This is a web app that demonstrates custom route sharing. While it currently requires manual pin placement and link sharing, the real vision is for this to be integrated directly into delivery platforms.
+
+If implemented natively:
+- The driver's location would auto-populate from GPS
+- Your pickup point would pre-fill from your order address
+- Routes would be shared instantly through the in-app chat (no external links)
+- The entire flow would be seamless and require zero setup
+
+This project exists to show what's possible when you let users draw their own routes instead of relying on default navigation that often gets confused by complex entrances, gates, or campus layouts.
+
 
 ## ✨ Features
 
