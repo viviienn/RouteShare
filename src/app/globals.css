@@ -16,6 +16,9 @@ body {
   background-color: #0a0a0a;
   color: #fafafa;
   -webkit-font-smoothing: antialiased;
+  /* Prevent bounce on iOS */
+  position: fixed;
+  touch-action: none;
 }
 
 #__next,
@@ -24,7 +27,6 @@ body {
 }
 
 /* ── Mapbox GL JS core styles ───────────────────────────────────────── */
-/* Imported here so they are always present regardless of component SSR */
 .mapboxgl-map {
   position: absolute;
   top: 0;
@@ -43,8 +45,13 @@ body {
 }
 
 .mapboxgl-ctrl-top-right {
-  top: 10px;
-  right: 10px;
+  top: env(safe-area-inset-top, 10px);
+  right: env(safe-area-inset-right, 10px);
+}
+
+.mapboxgl-ctrl-bottom-right {
+  bottom: env(safe-area-inset-bottom, 10px);
+  right: env(safe-area-inset-right, 10px);
 }
 
 .mapboxgl-ctrl-group {
@@ -53,11 +60,21 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
   border-radius: 12px !important;
   overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
 .mapboxgl-ctrl-group button {
   background-color: transparent !important;
   color: white !important;
+  width: 32px !important;
+  height: 32px !important;
+}
+
+@media (max-width: 640px) {
+  .mapboxgl-ctrl-group button {
+    width: 40px !important;
+    height: 40px !important;
+  }
 }
 
 .mapboxgl-ctrl-group button:hover {
@@ -70,4 +87,9 @@ body {
 
 .mapboxgl-ctrl-icon {
   filter: invert(1);
+}
+
+/* Custom adjustment for mobile attribution */
+.mapboxgl-ctrl-attrib.mapboxgl-compact {
+  margin-bottom: env(safe-area-inset-bottom, 10px);
 }

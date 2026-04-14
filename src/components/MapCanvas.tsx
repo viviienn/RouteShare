@@ -72,21 +72,22 @@ const DRAW_STYLES: any[] = [
 function createMarkerEl(color: string, label: string): HTMLElement {
   const wrapper = document.createElement("div");
   wrapper.style.cssText =
-    "display:flex;flex-direction:column;align-items:center;cursor:pointer;user-select:none;";
+    "display:flex;flex-direction:column;align-items:center;cursor:pointer;user-select:none;padding:10px;"; // Padding for touch target
 
   const badge = document.createElement("div");
   badge.textContent = label;
   badge.style.cssText = `
-    background:${color};color:white;font-size:11px;font-weight:700;
-    padding:4px 10px;border-radius:20px;white-space:nowrap;
-    font-family:-apple-system,sans-serif;box-shadow:0 3px 12px rgba(0,0,0,0.5);
-    margin-bottom:5px;letter-spacing:0.04em;border:1.5px solid rgba(255,255,255,0.3);
+    background:${color};color:white;font-size:12px;font-weight:700;
+    padding:5px 12px;border-radius:20px;white-space:nowrap;
+    font-family:-apple-system,sans-serif;box-shadow:0 4px 15px rgba(0,0,0,0.4);
+    margin-bottom:6px;letter-spacing:0.02em;border:2px solid rgba(255,255,255,0.4);
+    backdrop-filter:blur(4px);
   `;
   const pin = document.createElement("div");
   pin.style.cssText = `
-    width:20px;height:20px;background:${color};border:3px solid white;
+    width:24px;height:24px;background:${color};border:3px solid white;
     border-radius:50% 50% 50% 0;transform:rotate(-45deg);
-    box-shadow:0 3px 10px rgba(0,0,0,0.5);
+    box-shadow:0 4px 12px rgba(0,0,0,0.4);
   `;
   wrapper.appendChild(badge);
   wrapper.appendChild(pin);
