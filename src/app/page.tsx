@@ -11,6 +11,7 @@ import {
   Share2, Check, Copy, AlertCircle, Loader2,
   PencilLine, Trash2, MapPin, Crosshair,
 } from "lucide-react";
+import { Drawer } from "vaul";
 
 // ── Tool palette button ──────────────────────────────────────────────────────
 function ToolBtn({
@@ -34,19 +35,19 @@ function ToolBtn({
       disabled={disabled}
       title={label}
       className={`
-        group relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
+        group relative w-full flex items-center gap-4 px-4 py-3 min-h-[48px] rounded-xl text-[15px] font-medium
         transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed
         ${active
           ? "text-neutral-950 shadow-lg"
-          : "text-neutral-300 hover:text-white hover:bg-white/8"
+          : "text-neutral-300 hover:text-white hover:bg-white/10 active:bg-white/15"
         }
       `}
       style={active ? { background: accentColor, boxShadow: `0 4px 20px ${accentColor}55` } : {}}
     >
-      <span className="flex-shrink-0">{icon}</span>
+      <span className="flex-shrink-0 scale-110">{icon}</span>
       <span className="whitespace-nowrap">{label}</span>
       {active && (
-        <span className="ml-auto w-1.5 h-1.5 rounded-full bg-neutral-950/50" />
+        <span className="ml-auto w-2 h-2 rounded-full bg-neutral-950/50" />
       )}
     </button>
   );
@@ -151,6 +152,54 @@ export default function Home() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const renderToolButtons = () => (
+    <>
+      <ToolBtn
+        icon={<MapPin className="w-5 h-5" style={{ color: "#3B82F6" }} />}
+        label="Driver Start"
+        active={activeTool === "set-start"}
+        disabled={saved}
+        accentColor="#3B82F6"
+        onClick={() => selectTool("set-start")}
+      />
+      <ToolBtn
+        icon={<MapPin className="w-5 h-5" style={{ color: "#EF4444" }} />}
+        label="Destination"
+        active={activeTool === "set-end"}
+        disabled={saved}
+        accentColor="#EF4444"
+        onClick={() => selectTool("set-end")}
+      />
+      <ToolBtn
+        icon={<PencilLine className="w-5 h-5" style={{ color: "#00E5FF" }} />}
+        label="Draw Route"
+        active={activeTool === "draw"}
+        disabled={saved}
+        accentColor="#00C2D4"
+        onClick={() => selectTool("draw")}
+      />
+
+      <div className="h-px bg-white/10 mx-1 my-2" />
+
+      <ToolBtn
+        icon={<Crosshair className="w-5 h-5 text-neutral-400" />}
+        label="Undo Point"
+        active={false}
+        disabled={saved || !hasRoute}
+        accentColor="#71717a"
+        onClick={() => mapRef.current?.undoLastPoint()}
+      />
+      <ToolBtn
+        icon={<Trash2 className="w-5 h-5 text-red-400" />}
+        label="Clear All"
+        active={false}
+        disabled={!hasRoute && !routeData?.startMarker && !routeData?.endMarker}
+        accentColor="#EF4444"
+        onClick={handleClearAll}
+      />
+    </>
+  );
+
   return (
     <main className="w-screen h-screen relative overflow-hidden bg-neutral-950">
       {/* ── Full-screen map ─────────────────────────────────────────────── */}
@@ -161,60 +210,33 @@ export default function Home() {
         onRouteUpdate={handleRouteUpdate}
       />
 
-      {/* ── Left floating tool palette ──────────────────────────────────── */}
-      <div className="absolute left-4 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-1 bg-neutral-950/90 backdrop-blur-md border border-white/10 rounded-2xl p-2 shadow-2xl min-w-[170px]">
-        <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest px-2 pt-1 pb-0.5">
+      {/* ── Desktop floating tool palette (hidden on mobile) ────────────── */}
+      <div className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-20 flex-col gap-1 bg-neutral-950/90 backdrop-blur-md border border-white/10 rounded-2xl p-3 shadow-2xl min-w-[200px]">
+        <p className="text-xs font-bold text-neutral-500 uppercase tracking-widest px-2 pt-1 pb-1">
           Tools
         </p>
-
-        <ToolBtn
-          icon={<MapPin className="w-4 h-4" style={{ color: "#3B82F6" }} />}
-          label="Driver Start"
-          active={activeTool === "set-start"}
-          disabled={saved}
-          accentColor="#3B82F6"
-          onClick={() => selectTool("set-start")}
-        />
-        <ToolBtn
-          icon={<MapPin className="w-4 h-4" style={{ color: "#EF4444" }} />}
-          label="Destination"
-          active={activeTool === "set-end"}
-          disabled={saved}
-          accentColor="#EF4444"
-          onClick={() => selectTool("set-end")}
-        />
-        <ToolBtn
-          icon={<PencilLine className="w-4 h-4" style={{ color: "#00E5FF" }} />}
-          label="Draw Route"
-          active={activeTool === "draw"}
-          disabled={saved}
-          accentColor="#00C2D4"
-          onClick={() => selectTool("draw")}
-        />
-
-        <div className="h-px bg-white/10 mx-1 my-1" />
-
-        <ToolBtn
-          icon={<Crosshair className="w-4 h-4 text-neutral-400" />}
-          label="Undo Point"
-          active={false}
-          disabled={saved || !hasRoute}
-          accentColor="#71717a"
-          onClick={() => mapRef.current?.undoLastPoint()}
-        />
-        <ToolBtn
-          icon={<Trash2 className="w-4 h-4 text-red-400" />}
-          label="Clear All"
-          active={false}
-          disabled={!hasRoute && !routeData?.startMarker && !routeData?.endMarker}
-          accentColor="#EF4444"
-          onClick={handleClearAll}
-        />
+        {renderToolButtons()}
       </div>
 
-      {/* ── Bottom bar ──────────────────────────────────────────────────── */}
-      <div className="absolute bottom-0 inset-x-0 z-20 p-4">
-        <div className="max-w-md mx-auto flex flex-col gap-3">
+      {/* ── Mobile Swipeable Drawer (hidden on desktop) ─────────────────── */}
+      <div className="md:hidden">
+        <Drawer.Root open={true} dismissible={false} modal={false} snapPoints={["160px", "450px"]} activeSnapPoint="160px">
+          <Drawer.Portal>
+            {/* The overlay is intentionally omitted so the map remains interactive behind the drawer */}
+            <Drawer.Content className="fixed flex flex-col bg-neutral-900 border-t border-white/10 bottom-0 left-0 right-0 h-full max-h-[90%] rounded-t-3xl focus:outline-none z-30 pb-32 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+              <Drawer.Handle className="bg-neutral-600 w-12 h-1.5 rounded-full mx-auto mt-4 mb-3" />
+              <div className="flex-1 overflow-y-auto px-5 pb-4 flex flex-col gap-1.5">
+                <p className="text-[11px] font-bold text-neutral-500 uppercase tracking-widest px-1 py-1">Tools</p>
+                {renderToolButtons()}
+              </div>
+            </Drawer.Content>
+          </Drawer.Portal>
+        </Drawer.Root>
+      </div>
+
+      {/* ── Bottom bar (Docked Actions) ─────────────────────────────────── */}
+      <div className="absolute bottom-0 inset-x-0 z-50 p-4 pointer-events-none pb-[env(safe-area-inset-bottom,16px)]">
+        <div className="max-w-md mx-auto flex flex-col gap-3 pointer-events-auto">
 
           {/* Active tool hint */}
           {HINTS[activeTool] && (
@@ -242,7 +264,7 @@ export default function Home() {
               {isSaving ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
-                <Share2 className="w-5 h-5" />
+                <Share2 className="w-6 h-6" />
               )}
               {isSaving ? "Saving…" : "Generate Share Link"}
             </button>
