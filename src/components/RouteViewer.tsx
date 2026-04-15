@@ -234,10 +234,9 @@ export default function RouteViewer({ geojson }: RouteViewerProps) {
                 </div>
                 <button 
                   onClick={() => setIsLegendOpen(false)}
-                  title="Hide"
                   className="hidden md:block text-neutral-500 hover:text-white transition-colors"
                 >
-                  <ArrowLeft className="w-4 h-4 rotate-[-90deg]" />
+                  <ArrowLeft className="w-4 h-4 rotate-[-90deg]" title="Hide" />
                 </button>
               </div>
               
