@@ -9,9 +9,8 @@ import MapCanvas, {
 import { saveRouteAction } from "./actions";
 import {
   Share2, Check, Copy, AlertCircle, Loader2,
-  PencilLine, Trash2, MapPin, Crosshair,
+  PencilLine, Trash2, MapPin, Crosshair, ChevronDown, ChevronUp
 } from "lucide-react";
-import { Drawer } from "vaul";
 
 // ── Tool palette button ──────────────────────────────────────────────────────
 function ToolBtn({
@@ -66,6 +65,7 @@ export default function Home() {
   const mapRef = useRef<MapCanvasHandle>(null);
 
   const [activeTool, setActiveTool] = useState<ToolMode>("idle");
+  const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [routeData, setRouteData] = useState<RouteUpdateData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -281,37 +281,34 @@ export default function Home() {
         onRouteUpdate={handleRouteUpdate}
       />
 
-      {/* ── Desktop floating tool palette (hidden on mobile) ────────────── */}
-      <div className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-20 flex-col gap-1 bg-neutral-950/90 backdrop-blur-md border border-white/10 rounded-2xl p-3 shadow-2xl min-w-[200px]">
-        <p className="text-xs font-bold text-neutral-500 uppercase tracking-widest px-2 pt-1 pb-1">
-          Tools
-        </p>
-        {renderToolButtons()}
-      </div>
+      {/* ── Unified Floating Toolbox ────────────────────────────────────── */}
+      <div className="absolute z-30 left-4 right-4 bottom-[env(safe-area-inset-bottom,16px)] md:left-4 md:right-auto md:top-1/2 md:-translate-y-1/2 md:bottom-auto w-auto md:w-[320px] flex flex-col bg-neutral-900/95 backdrop-blur-xl border border-white/10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.4)] overflow-hidden transition-all duration-300 ease-in-out">
+        
+        {/* Header / Toggle */}
+        <div 
+          onClick={() => window.innerWidth < 768 && setIsMenuOpen(!isMenuOpen)}
+          className="flex items-center justify-between w-full px-5 py-4 md:cursor-default cursor-pointer select-none bg-neutral-900/50"
+        >
+          <p className="text-[11px] font-bold text-neutral-500 uppercase tracking-widest">
+            Tools
+          </p>
+          <button className="md:hidden p-1.5 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
+            {isMenuOpen ? <ChevronDown className="w-4 h-4 text-neutral-300" /> : <ChevronUp className="w-4 h-4 text-neutral-300" />}
+          </button>
+        </div>
 
-      {/* ── Mobile Swipeable Drawer (hidden on desktop) ─────────────────── */}
-      <div className="md:hidden">
-        <Drawer.Root open={true} dismissible={false} modal={false} snapPoints={["160px", "450px"]} activeSnapPoint="160px">
-          <Drawer.Portal>
-            {/* The overlay is intentionally omitted so the map remains interactive behind the drawer */}
-            <Drawer.Content className="fixed flex flex-col bg-neutral-900 border-t border-white/10 bottom-0 left-0 right-0 h-full max-h-[90%] rounded-t-3xl focus:outline-none z-30 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
-              <Drawer.Handle className="flex-shrink-0 bg-neutral-600 w-12 h-1.5 rounded-full mx-auto mt-4 mb-3" />
-              <div className="flex-1 overflow-y-auto px-5 pb-6 flex flex-col gap-1.5">
-                <p className="text-[11px] font-bold text-neutral-500 uppercase tracking-widest px-1 py-1 flex-shrink-0">Tools</p>
-                {renderToolButtons()}
-              </div>
-              <div className="flex-shrink-0 px-5 pt-3 pb-[env(safe-area-inset-bottom,20px)] bg-neutral-900 border-t border-white/5">
-                {renderBottomActions()}
-              </div>
-            </Drawer.Content>
-          </Drawer.Portal>
-        </Drawer.Root>
-      </div>
-
-      {/* ── Desktop Bottom bar (Docked Actions) ─────────────────────────── */}
-      <div className="hidden md:flex absolute bottom-0 inset-x-0 z-50 p-4 pointer-events-none pb-[env(safe-area-inset-bottom,16px)]">
-        <div className="max-w-md mx-auto w-full">
-          {renderBottomActions()}
+        {/* Expandable Content */}
+        <div className={`flex-col md:flex max-h-[70vh] md:max-h-[85vh] transition-all duration-300 ${isMenuOpen ? 'flex' : 'hidden'}`}>
+          
+          {/* Scrollable Tool Buttons List */}
+          <div className="flex-1 overflow-y-auto px-3 pb-3 flex flex-col gap-1.5 custom-scrollbar">
+            {renderToolButtons()}
+          </div>
+          
+          {/* Docked Bottom Actions (Share, Error, Hint) */}
+          <div className="flex-shrink-0 px-4 pt-4 pb-4 bg-black/20 border-t border-white/5">
+            {renderBottomActions()}
+          </div>
         </div>
       </div>
     </main>
