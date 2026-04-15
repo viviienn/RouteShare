@@ -223,9 +223,9 @@ export default function Home() {
         <Drawer.Root open={true} dismissible={false} modal={false} snapPoints={["160px", "450px"]} activeSnapPoint="160px">
           <Drawer.Portal>
             {/* The overlay is intentionally omitted so the map remains interactive behind the drawer */}
-            <Drawer.Content className="fixed flex flex-col bg-neutral-900 border-t border-white/10 bottom-0 left-0 right-0 h-full max-h-[90%] rounded-t-3xl focus:outline-none z-30 pb-32 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+            <Drawer.Content className="fixed flex flex-col bg-neutral-900 border-t border-white/10 bottom-0 left-0 right-0 h-full max-h-[90%] rounded-t-3xl focus:outline-none z-30 pb-10 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
               <Drawer.Handle className="bg-neutral-600 w-12 h-1.5 rounded-full mx-auto mt-4 mb-3" />
-              <div className="flex-1 overflow-y-auto px-5 pb-4 flex flex-col gap-1.5">
+              <div className="flex-1 overflow-y-auto px-5 pb-40 flex flex-col gap-1.5">
                 <p className="text-[11px] font-bold text-neutral-500 uppercase tracking-widest px-1 py-1">Tools</p>
                 {renderToolButtons()}
               </div>
