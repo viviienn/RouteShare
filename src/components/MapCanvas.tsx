@@ -52,19 +52,19 @@ const DRAW_STYLES: any[] = [
     id: "gl-draw-vertex-halo-active",
     type: "circle",
     filter: ["all", ["==", "meta", "vertex"], ["==", "$type", "Point"], ["!=", "mode", "static"]],
-    paint: { "circle-radius": 9, "circle-color": "#FFFFFF" },
+    paint: { "circle-radius": 14, "circle-color": "#FFFFFF" }, // Increased for mobile touch
   },
   {
     id: "gl-draw-vertex-active",
     type: "circle",
     filter: ["all", ["==", "meta", "vertex"], ["==", "$type", "Point"], ["!=", "mode", "static"]],
-    paint: { "circle-radius": 6, "circle-color": "#00E5FF" },
+    paint: { "circle-radius": 8, "circle-color": "#00E5FF" }, // Increased for mobile touch
   },
   {
     id: "gl-draw-midpoint",
     type: "circle",
     filter: ["all", ["==", "$type", "Point"], ["==", "meta", "midpoint"]],
-    paint: { "circle-radius": 5, "circle-color": "#00E5FF", "circle-opacity": 0.7 },
+    paint: { "circle-radius": 7, "circle-color": "#00E5FF", "circle-opacity": 0.7 }, // Increased for mobile touch
   },
 ];
 
@@ -72,22 +72,22 @@ const DRAW_STYLES: any[] = [
 function createMarkerEl(color: string, label: string): HTMLElement {
   const wrapper = document.createElement("div");
   wrapper.style.cssText =
-    "display:flex;flex-direction:column;align-items:center;cursor:pointer;user-select:none;";
+    "display:flex;flex-direction:column;align-items:center;cursor:pointer;user-select:none;touch-action:manipulation;";
 
   const badge = document.createElement("div");
   badge.textContent = label;
   badge.style.cssText = `
-    background:${color};color:white;font-size:11px;font-weight:700;
-    padding:4px 10px;border-radius:20px;white-space:nowrap;
+    background:${color};color:white;font-size:12px;font-weight:700;
+    padding:5px 12px;border-radius:20px;white-space:nowrap;
     font-family:-apple-system,sans-serif;box-shadow:0 3px 12px rgba(0,0,0,0.5);
-    margin-bottom:5px;letter-spacing:0.04em;border:1.5px solid rgba(255,255,255,0.3);
-  `;
+    margin-bottom:6px;letter-spacing:0.04em;border:1.5px solid rgba(255,255,255,0.3);
+  `; // Increased padding and font size for better mobile reading/touch
   const pin = document.createElement("div");
   pin.style.cssText = `
-    width:20px;height:20px;background:${color};border:3px solid white;
+    width:24px;height:24px;background:${color};border:3px solid white;
     border-radius:50% 50% 50% 0;transform:rotate(-45deg);
     box-shadow:0 3px 10px rgba(0,0,0,0.5);
-  `;
+  `; // Increased pin size slightly
   wrapper.appendChild(badge);
   wrapper.appendChild(pin);
   return wrapper;
@@ -180,9 +180,6 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       mapboxgl.accessToken = token;
 
       // ── Initialize map immediately with London fallback ───────────────────
-      // We do NOT wait for geolocation before creating the map — this is the
-      // root cause of the previous blank-map bug. Instead, we flyTo the user's
-      // position once geolocation resolves.
       const map = new mapboxgl.Map({
         container,
         style: "mapbox://styles/mapbox/dark-v11",
@@ -190,6 +187,7 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         zoom: 12,
         pitch: 20,
         attributionControl: false,
+        clickTolerance: 15, // Greatly increased to prevent mobile wobbles acting as pans
       });
       mapRef.current = map;
 
@@ -198,6 +196,9 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         displayControlsDefault: false,
         defaultMode: "simple_select",
         styles: DRAW_STYLES,
+        touchEnabled: true,
+        touchBuffer: 40, // Increased buffer area around points for touch
+        clickBuffer: 15, // Increased buffer area around points for mouse
       });
       drawRef.current = draw;
       map.addControl(draw as unknown as mapboxgl.IControl);
