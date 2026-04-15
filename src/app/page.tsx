@@ -201,7 +201,7 @@ export default function Home() {
   );
 
   return (
-    <main className="w-screen h-screen relative overflow-hidden bg-neutral-950">
+    <main className="w-screen h-[100dvh] relative overflow-hidden bg-neutral-950">
       {/* ── Full-screen map ─────────────────────────────────────────────── */}
       <MapCanvas
         ref={mapRef}

@@ -255,8 +255,8 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         }
       });
 
-      // ── Map click → place marker ──────────────────────────────────────────
-      map.on("click", (e) => {
+      // ── Map click & touch → place marker ──────────────────────────────────
+      const handleMarkerPlace = (e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent) => {
         const mode = activeModeRef.current;
         if (mode === "set-start") {
           startMarkerRef.current?.remove();
@@ -283,7 +283,10 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           emitUpdate();
           onModeCompleteRef.current();
         }
-      });
+      };
+
+      map.on("click", handleMarkerPlace);
+      map.on("touchstart", handleMarkerPlace);
 
       // ── Draw events ───────────────────────────────────────────────────────
       map.on("draw.create", () => {
