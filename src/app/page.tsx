@@ -200,6 +200,77 @@ export default function Home() {
     </>
   );
 
+  const renderBottomActions = () => (
+    <div className="flex flex-col gap-3 w-full pointer-events-auto">
+      {/* Active tool hint */}
+      {HINTS[activeTool] && (
+        <div className="flex items-center gap-2 bg-neutral-950/85 backdrop-blur-md border border-cyan-500/30 text-cyan-300 text-sm px-4 py-2.5 rounded-xl shadow-lg">
+          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse flex-shrink-0" />
+          {HINTS[activeTool]}
+        </div>
+      )}
+
+      {/* Error */}
+      {error && (
+        <div className="flex items-start gap-2 text-red-400 bg-red-500/10 border border-red-500/20 p-3 rounded-xl text-sm">
+          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <p className="leading-snug">{error}</p>
+        </div>
+      )}
+
+      {/* Generate button / Share link */}
+      {!saved ? (
+        <button
+          onClick={handleSaveRoute}
+          disabled={isSaving || !hasRoute}
+          className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-emerald-500 text-white font-bold text-base transition-all shadow-2xl shadow-emerald-500/25"
+        >
+          {isSaving ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            <Share2 className="w-6 h-6" />
+          )}
+          {isSaving ? "Saving…" : "Generate Share Link"}
+        </button>
+      ) : (
+        <div className="flex flex-col gap-3 bg-neutral-950/90 backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-2xl">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">
+              Route saved — link ready
+            </p>
+          </div>
+          <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-xl p-1.5">
+            <input
+              readOnly
+              type="text"
+              value={`${typeof window !== "undefined" ? window.location.origin : ""}/route/${shareId}`}
+              onClick={(e) => e.currentTarget.select()}
+              className="bg-transparent text-sm text-neutral-300 w-full outline-none px-2 cursor-text"
+            />
+            <button
+              onClick={copyToClipboard}
+              className={`flex-shrink-0 flex items-center gap-1.5 py-2 px-3 rounded-lg text-sm font-semibold transition-all ${
+                copied
+                  ? "bg-emerald-500/20 text-emerald-400"
+                  : "bg-indigo-600 hover:bg-indigo-500 text-white"
+              }`}
+            >
+              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+              {copied ? "Copied!" : "Copy"}
+            </button>
+          </div>
+          <button
+            onClick={handleClearAll}
+            className="text-xs text-neutral-500 hover:text-neutral-400 underline underline-offset-2 transition-colors w-fit mx-auto"
+          >
+            Draw another route
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <main className="w-screen h-[100dvh] relative overflow-hidden bg-neutral-950">
       {/* ── Full-screen map ─────────────────────────────────────────────── */}
@@ -223,87 +294,24 @@ export default function Home() {
         <Drawer.Root open={true} dismissible={false} modal={false} snapPoints={["160px", "450px"]} activeSnapPoint="160px">
           <Drawer.Portal>
             {/* The overlay is intentionally omitted so the map remains interactive behind the drawer */}
-            <Drawer.Content className="fixed flex flex-col bg-neutral-900 border-t border-white/10 bottom-0 left-0 right-0 h-full max-h-[90%] rounded-t-3xl focus:outline-none z-30 pb-10 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
-              <Drawer.Handle className="bg-neutral-600 w-12 h-1.5 rounded-full mx-auto mt-4 mb-3" />
-              <div className="flex-1 overflow-y-auto px-5 pb-40 flex flex-col gap-1.5">
-                <p className="text-[11px] font-bold text-neutral-500 uppercase tracking-widest px-1 py-1">Tools</p>
+            <Drawer.Content className="fixed flex flex-col bg-neutral-900 border-t border-white/10 bottom-0 left-0 right-0 h-full max-h-[90%] rounded-t-3xl focus:outline-none z-30 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+              <Drawer.Handle className="flex-shrink-0 bg-neutral-600 w-12 h-1.5 rounded-full mx-auto mt-4 mb-3" />
+              <div className="flex-1 overflow-y-auto px-5 pb-6 flex flex-col gap-1.5">
+                <p className="text-[11px] font-bold text-neutral-500 uppercase tracking-widest px-1 py-1 flex-shrink-0">Tools</p>
                 {renderToolButtons()}
+              </div>
+              <div className="flex-shrink-0 px-5 pt-3 pb-[env(safe-area-inset-bottom,20px)] bg-neutral-900 border-t border-white/5">
+                {renderBottomActions()}
               </div>
             </Drawer.Content>
           </Drawer.Portal>
         </Drawer.Root>
       </div>
 
-      {/* ── Bottom bar (Docked Actions) ─────────────────────────────────── */}
-      <div className="absolute bottom-0 inset-x-0 z-50 p-4 pointer-events-none pb-[env(safe-area-inset-bottom,16px)]">
-        <div className="max-w-md mx-auto flex flex-col gap-3 pointer-events-auto">
-
-          {/* Active tool hint */}
-          {HINTS[activeTool] && (
-            <div className="flex items-center gap-2 bg-neutral-950/85 backdrop-blur-md border border-cyan-500/30 text-cyan-300 text-sm px-4 py-2.5 rounded-xl shadow-lg">
-              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse flex-shrink-0" />
-              {HINTS[activeTool]}
-            </div>
-          )}
-
-          {/* Error */}
-          {error && (
-            <div className="flex items-start gap-2 text-red-400 bg-red-500/10 border border-red-500/20 p-3 rounded-xl text-sm">
-              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-              <p className="leading-snug">{error}</p>
-            </div>
-          )}
-
-          {/* Generate button / Share link */}
-          {!saved ? (
-            <button
-              onClick={handleSaveRoute}
-              disabled={isSaving || !hasRoute}
-              className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-emerald-500 text-white font-bold text-base transition-all shadow-2xl shadow-emerald-500/25"
-            >
-              {isSaving ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Share2 className="w-6 h-6" />
-              )}
-              {isSaving ? "Saving…" : "Generate Share Link"}
-            </button>
-          ) : (
-            <div className="flex flex-col gap-3 bg-neutral-950/90 backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-2xl">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">
-                  Route saved — link ready
-                </p>
-              </div>
-              <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-xl p-1.5">
-                <input
-                  readOnly
-                  type="text"
-                  value={`${typeof window !== "undefined" ? window.location.origin : ""}/route/${shareId}`}
-                  onClick={(e) => e.currentTarget.select()}
-                  className="bg-transparent text-sm text-neutral-300 w-full outline-none px-2 cursor-text"
-                />
-                <button
-                  onClick={copyToClipboard}
-                  className={`flex-shrink-0 flex items-center gap-1.5 py-2 px-3 rounded-lg text-sm font-semibold transition-all ${
-                    copied
-                      ? "bg-emerald-500/20 text-emerald-400"
-                      : "bg-indigo-600 hover:bg-indigo-500 text-white"
-                  }`}
-                >
-                  {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  {copied ? "Copied!" : "Copy"}
-                </button>
-              </div>
-              <button
-                onClick={handleClearAll}
-                className="text-xs text-neutral-500 hover:text-neutral-400 underline underline-offset-2 transition-colors w-fit mx-auto"
-              >
-                Draw another route
-              </button>
-            </div>
-          )}
+      {/* ── Desktop Bottom bar (Docked Actions) ─────────────────────────── */}
+      <div className="hidden md:flex absolute bottom-0 inset-x-0 z-50 p-4 pointer-events-none pb-[env(safe-area-inset-bottom,16px)]">
+        <div className="max-w-md mx-auto w-full">
+          {renderBottomActions()}
         </div>
       </div>
     </main>
