@@ -226,8 +226,17 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
 
     // ── Map initialisation ───────────────────────────────────────────────────
     useEffect(() => {
+      if (typeof window === "undefined") return;
+
       const container = containerRef.current;
       if (!container) return;
+
+      // Force unmount any zombie Mapbox instances and clear the DOM element entirely
+      if (mapRef.current) {
+        try { mapRef.current.remove(); } catch (e) { /* ignore */ }
+        mapRef.current = null;
+      }
+      container.innerHTML = "";
 
       const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
       if (!token) {
@@ -387,27 +396,11 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
     // map container always has non-zero computed dimensions. Mapbox GL will
     // silently refuse to initialise if width or height computes to 0px.
     return (
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-          overflow: "hidden",
-        }}
-      >
+      <div className="absolute inset-0 w-screen h-[100dvh] overflow-hidden">
         {/* Mapbox GL mounts into this div — must have explicit pixel dimensions */}
         <div
           ref={containerRef}
-          style={{
-            position: "absolute",
-            top: 0,
-            right: 0,
-            bottom: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-          }}
+          className="absolute inset-0 w-full h-full"
         />
 
         {/* Spinner: shown while map loads and awaiting geolocation */}
