@@ -271,6 +271,11 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       });
       resizeObserver.observe(container);
 
+      // Failsafe: Hard trigger a resize just after the 400ms Framer Motion mounting animation finishes
+      const fallbackResizeTimer = setTimeout(() => {
+        map.resize();
+      }, 450);
+
       // ── MapboxDraw ────────────────────────────────────────────────────────
       const draw = new MapboxDraw({
         displayControlsDefault: false,
@@ -384,6 +389,7 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       return () => {
         console.log("[MapCanvas] cleanup");
         cancelled = true;
+        clearTimeout(fallbackResizeTimer);
         resizeObserver.disconnect();
         map.remove();
         mapRef.current = null;
