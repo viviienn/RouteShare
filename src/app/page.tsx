@@ -7,10 +7,11 @@ import MapCanvas, {
   type RouteUpdateData,
   type ToolMode,
 } from "@/components/MapCanvas";
+import Link from "next/link";
 import { saveRouteAction } from "./actions";
 import {
   Share2, Check, Copy, AlertCircle, Loader2,
-  PencilLine, Trash2, MapPin, Crosshair, ChevronDown, ChevronUp, Route, Settings
+  PencilLine, Trash2, MapPin, Crosshair, ChevronDown, ChevronUp, Route, Settings, FileText
 } from "lucide-react";
 
 // ── Tool palette button ──────────────────────────────────────────────────────
@@ -325,6 +326,18 @@ export default function Home() {
           <strong className="text-neutral-300">Automatic:</strong> Fetches real driving routes from the road network. <br/>
           <strong className="text-neutral-300 mt-1 block">Manual:</strong> Allows drawing arbitrary custom lines anywhere off-road.
         </p>
+      </div>
+
+      <div className="h-px bg-white/10 w-full" />
+
+      <div>
+        <Link 
+          href="/changelog" 
+          className="flex items-center gap-3 w-full px-3 py-3 rounded-xl bg-white/5 hover:bg-white/10 active:bg-white/15 transition-all text-neutral-300 hover:text-white"
+        >
+          <FileText className="w-4 h-4 text-neutral-400" />
+          <span className="text-sm font-medium">View Changelog</span>
+        </Link>
       </div>
     </div>
   );
