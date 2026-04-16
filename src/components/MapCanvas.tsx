@@ -255,6 +255,13 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       });
       mapRef.current = map;
 
+      // Ensure map resizes correctly if container dimensions change 
+      // (crucial for Framer Motion PageTransitions and layout changes)
+      const resizeObserver = new ResizeObserver(() => {
+        map.resize();
+      });
+      resizeObserver.observe(container);
+
       // ── MapboxDraw ────────────────────────────────────────────────────────
       const draw = new MapboxDraw({
         displayControlsDefault: false,
@@ -368,6 +375,7 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       return () => {
         console.log("[MapCanvas] cleanup");
         cancelled = true;
+        resizeObserver.disconnect();
         map.remove();
         mapRef.current = null;
         mapReadyRef.current = false;
