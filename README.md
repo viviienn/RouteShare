@@ -60,6 +60,7 @@ This project exists to show what's possible when you let users draw their own ro
 - **Framework**: [Next.js 16](https://nextjs.org/) (App Router)
 - **Maps**: [Mapbox GL JS](https://www.mapbox.com/mapbox-gljs) & [Mapbox Draw](https://github.com/mapbox/mapbox-gl-draw)
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **Animations**: [Framer Motion](https://www.framer.com/motion/)
 - **Backend**: [Supabase](https://supabase.com/) (PostgreSQL + RLS)
 - **Icons**: [Lucide React](https://lucide.dev/)
 

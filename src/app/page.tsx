@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import MapCanvas, {
   type MapCanvasHandle,
   type RouteUpdateData,
@@ -63,10 +64,19 @@ const HINTS: Record<ToolMode, string | null> = {
 // ── Page ─────────────────────────────────────────────────────────────────────
 export default function Home() {
   const mapRef = useRef<MapCanvasHandle>(null);
+  const boundsRef = useRef<HTMLDivElement>(null);
 
   const [activeTool, setActiveTool] = useState<ToolMode>("idle");
   const [isMenuOpen, setIsMenuOpen] = useState(true);
+  const [isDesktop, setIsDesktop] = useState(true);
   const [routeData, setRouteData] = useState<RouteUpdateData | null>(null);
+
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth >= 768);
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [shareId, setShareId] = useState<string | null>(null);
@@ -272,7 +282,7 @@ export default function Home() {
   );
 
   return (
-    <main className="w-screen h-[100dvh] relative overflow-hidden bg-neutral-950">
+    <main ref={boundsRef} className="w-screen h-[100dvh] relative overflow-hidden bg-neutral-950">
       {/* ── Full-screen map ─────────────────────────────────────────────── */}
       <MapCanvas
         ref={mapRef}
@@ -282,35 +292,55 @@ export default function Home() {
       />
 
       {/* ── Unified Floating Toolbox ────────────────────────────────────── */}
-      <div className="absolute z-30 left-4 right-4 bottom-[env(safe-area-inset-bottom,16px)] md:left-4 md:right-auto md:top-1/2 md:-translate-y-1/2 md:bottom-auto w-auto md:w-[320px] flex flex-col bg-neutral-900/95 backdrop-blur-xl border border-white/10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.4)] overflow-hidden transition-all duration-300 ease-in-out">
-        
+      <motion.div
+        drag={isDesktop}
+        dragConstraints={boundsRef}
+        dragMomentum={false}
+        layout
+        className={`absolute z-30 ${isDesktop ? 'left-4 top-20 cursor-grab active:cursor-grabbing' : 'left-4 right-4 bottom-[env(safe-area-inset-bottom,16px)]'} w-auto md:w-[320px] flex flex-col bg-neutral-900/95 backdrop-blur-xl border border-white/10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.4)] overflow-hidden`}
+      >
         {/* Header / Toggle */}
-        <div 
-          onClick={() => window.innerWidth < 768 && setIsMenuOpen(!isMenuOpen)}
-          className="flex items-center justify-between w-full px-5 py-4 md:cursor-default cursor-pointer select-none bg-neutral-900/50"
+        <motion.div 
+          layout="position"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className={`flex items-center justify-between w-full px-5 py-4 cursor-pointer select-none ${isMenuOpen ? 'bg-neutral-900/50' : 'bg-transparent'}`}
         >
           <p className="text-[11px] font-bold text-neutral-500 uppercase tracking-widest">
             Tools
           </p>
-          <button className="md:hidden p-1.5 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
-            {isMenuOpen ? <ChevronDown className="w-4 h-4 text-neutral-300" /> : <ChevronUp className="w-4 h-4 text-neutral-300" />}
+          <button className="p-1.5 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
+            <motion.div animate={{ rotate: isMenuOpen ? 0 : -180 }} transition={{ duration: 0.3 }}>
+              <ChevronDown className="w-4 h-4 text-neutral-300" />
+            </motion.div>
           </button>
-        </div>
+        </motion.div>
 
         {/* Expandable Content */}
-        <div className={`flex-col md:flex max-h-[70vh] md:max-h-[85vh] transition-all duration-300 ${isMenuOpen ? 'flex' : 'hidden'}`}>
-          
-          {/* Scrollable Tool Buttons List */}
-          <div className="flex-1 overflow-y-auto px-3 pb-3 flex flex-col gap-1.5 custom-scrollbar">
-            {renderToolButtons()}
-          </div>
-          
-          {/* Docked Bottom Actions (Share, Error, Hint) */}
-          <div className="flex-shrink-0 px-4 pt-4 pb-4 bg-black/20 border-t border-white/5">
-            {renderBottomActions()}
-          </div>
-        </div>
-      </div>
+        <AnimatePresence initial={false}>
+          {isMenuOpen && (
+            <motion.div
+              layout
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="flex-col flex"
+            >
+              <div className="max-h-[70vh] md:max-h-[80vh] flex flex-col">
+                {/* Scrollable Tool Buttons List */}
+                <div className="flex-1 overflow-y-auto px-3 pb-3 flex flex-col gap-1.5 custom-scrollbar">
+                  {renderToolButtons()}
+                </div>
+                
+                {/* Docked Bottom Actions (Share, Error, Hint) */}
+                <div className="flex-shrink-0 px-4 pt-4 pb-4 bg-black/20 border-t border-white/5">
+                  {renderBottomActions()}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
     </main>
   );
 }

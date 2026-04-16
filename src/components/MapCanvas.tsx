@@ -255,9 +255,41 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         }
       });
 
+      // ── Auto-Routing (OSRM) ───────────────────────────────────────────────
+      const fetchAutoRoute = async (start: [number, number], end: [number, number]) => {
+        try {
+          // Add a loading state if needed (currently silent)
+          const url = `https://router.project-osrm.org/route/v1/driving/${start[0]},${start[1]};${end[0]},${end[1]}?geometries=geojson&overview=full`;
+          const res = await fetch(url);
+          const data = await res.json();
+          if (data.code === "Ok" && data.routes && data.routes.length > 0) {
+            const geometry = data.routes[0].geometry;
+            if (drawRef.current) {
+              drawRef.current.deleteAll(); // Erase any manually drawn routes
+              drawRef.current.add({
+                type: "Feature",
+                geometry: geometry,
+                properties: {}
+              });
+              emitUpdate(); // Push mapped route to parent
+            }
+            
+            // Adjust bounds to show the whole route
+            const bounds = new mapboxgl.LngLatBounds();
+            bounds.extend(start);
+            bounds.extend(end);
+            map.fitBounds(bounds, { padding: 60, duration: 1000 });
+          }
+        } catch (err) {
+          console.error("[MapCanvas] OSRM Routing failed:", err);
+        }
+      };
+
       // ── Map click & touch → place marker ──────────────────────────────────
       const handleMarkerPlace = (e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent) => {
         const mode = activeModeRef.current;
+        let didPlaceMarker = false;
+
         if (mode === "set-start") {
           startMarkerRef.current?.remove();
           startMarkerRef.current = new mapboxgl.Marker({
@@ -270,6 +302,7 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           startCoord.current = [e.lngLat.lng, e.lngLat.lat];
           emitUpdate();
           onModeCompleteRef.current();
+          didPlaceMarker = true;
         } else if (mode === "set-end") {
           endMarkerRef.current?.remove();
           endMarkerRef.current = new mapboxgl.Marker({
@@ -282,6 +315,11 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           endCoord.current = [e.lngLat.lng, e.lngLat.lat];
           emitUpdate();
           onModeCompleteRef.current();
+          didPlaceMarker = true;
+        }
+
+        if (didPlaceMarker && startCoord.current && endCoord.current) {
+          fetchAutoRoute(startCoord.current, endCoord.current);
         }
       };
 
