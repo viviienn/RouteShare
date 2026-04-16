@@ -53,6 +53,7 @@ This project exists to show what's possible when you let users draw their own ro
 - 🎨 **Interactive Drawing & Snapping**: High-contrast drawing tools with endpoints that magnetically snap to your pins.
 - 📌 **Custom Markers**: Explicit "Driver Start" (Blue) and "Destination" (Red) pins.
 - 🔗 **Instant Link Generation**: Save your route to Supabase and get a shareable URL in one click.
+- 📜 **Detailed Changelog**: Track all updates and bugfixes natively via the `/changelog` route.
 - 📱 **Mobile Optimized**: Fully responsive interface designed for use in the field.
 - 🛡️ **Security First**: Server-side rate limiting and hardened Supabase RLS policies.
 
