@@ -15,9 +15,9 @@ interface ChangelogEntry {
 
 const CHANGELOG: ChangelogEntry[] = [
   {
-    version: "v1.1.0",
-    date: "April 2026",
-    description: "The Routing & Overhaul Update. Introduced road-snapping infrastructure, massive UI improvements, and interactive settings.",
+    version: "April 16, 2026",
+    date: "Routing & Animations",
+    description: "Introduced road-snapping infrastructure, massive UI improvements, and interactive settings.",
     changes: [
       {
         category: "added",
@@ -26,7 +26,8 @@ const CHANGELOG: ChangelogEntry[] = [
           "Route Maker Modes: Added 'Automatic' and 'Manual' routing options via a new Settings tab.",
           "Magnetic point snapping for 'Manual' paths ensuring endpoints lock perfectly onto markers.",
           "Framer Motion animations for butter-smooth UI physics and drawer height transitions.",
-          "Changelog page to track project history."
+          "Changelog page to track project history natively.",
+          "Animated Framer Motion page transitions for seamlessly swapping paths."
         ],
       },
       {
@@ -40,7 +41,7 @@ const CHANGELOG: ChangelogEntry[] = [
       {
         category: "changed",
         items: [
-          "Centralized the responsive layout: Upgraded into a single 'Unified Toolbox' that floats gracefully on desktop and anchors dynamically on mobile.",
+          "Upgraded into a single 'Unified Toolbox' that floats gracefully on desktop and anchors dynamically on mobile.",
           "Replaced hardcoded action placements to ensure the 'Generate Share Link' button stays firmly attached to the drawer footer.",
         ],
       },
@@ -53,19 +54,47 @@ const CHANGELOG: ChangelogEntry[] = [
     ],
   },
   {
-    version: "v1.0.0",
-    date: "Initial Release",
-    description: "RouteShare public architecture launched.",
+    version: "April 15, 2026",
+    date: "Mobile Responsive Overhaul",
+    description: "Re-engineered the interface to prioritize mobile users interacting with the map.",
     changes: [
       {
         category: "added",
         items: [
-          "Mapbox GL JS and Mapbox Draw integration for custom polyline drawing.",
-          "Supabase backend synchronization with Row Level Security (RLS) for sharing generated routes via unique IDs.",
-          "Responsive, high-contrast dark theme.",
-          "Custom SVG Mapbox Markers indicating 'Driver Start' vs 'Destination'."
+          "Unified collapsible toolbox layout that adapts conditionally to desktop grids and smart mobile panels.",
+          "Mobile-native bottom drawer infrastructure optimized for thumb reachability.",
         ],
       },
+      {
+        category: "fixed",
+        items: [
+          "Significantly expanded interactive hitboxes (touch targets) across Mapbox pins and node vertices for easier tapping.",
+          "Viewport cutoff bugs preventing map touch events on certain mobile browsers.",
+        ]
+      }
+    ],
+  },
+  {
+    version: "April 14, 2026",
+    date: "Public Core Architecture Launch",
+    description: "The initial debut of RouteShare to bridge driver and customer logistics.",
+    changes: [
+      {
+        category: "added",
+        items: [
+          "Mapbox GL JS and Mapbox Draw integration supporting custom polyline tracking.",
+          "Supabase backend synchronization with strictly configured Row Level Security (RLS).",
+          "Responsive, high-contrast dark aesthetic.",
+          "Custom SVG Mapbox Markers indicating 'Driver Start' vs 'Destination'.",
+          "Comprehensive README encompassing vision, technical architecture, and implementation rationale."
+        ],
+      },
+       {
+        category: "fixed",
+        items: [
+          "React hydration and Next.js button title prop build warnings."
+        ]
+       }
     ],
   },
 ];
@@ -105,7 +134,7 @@ const CategoryBadge = ({ category }: { category: LogCategory }) => {
 
 export default function ChangelogPage() {
   return (
-    <main className="min-h-[100dvh] bg-neutral-950 text-neutral-300 font-sans selection:bg-cyan-500/30">
+    <main className="w-full h-full overflow-y-auto bg-neutral-950 text-neutral-300 font-sans selection:bg-cyan-500/30">
       {/* Navbar Container */}
       <div className="sticky top-0 z-50 bg-neutral-950/80 backdrop-blur-xl border-b border-white/5">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">

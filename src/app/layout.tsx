@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import PageTransition from "@/components/PageTransition";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -18,9 +19,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full w-full">
-      <body className={`${inter.variable} antialiased font-sans h-full w-full overflow-hidden`}>
-        {children}
+    <html lang="en" className="h-full w-full bg-neutral-950">
+      <body className={`${inter.variable} antialiased font-sans h-full w-full overflow-hidden text-neutral-300`}>
+        <PageTransition>
+          {children}
+        </PageTransition>
       </body>
     </html>
   );
