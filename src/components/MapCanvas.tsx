@@ -27,6 +27,7 @@ interface MapCanvasProps {
 export interface MapCanvasHandle {
   clearAll: () => void;
   undoLastPoint: () => void;
+  generateAutoRoute: () => Promise<void>;
 }
 
 // ── Constants ───────────────────────────────────────────────────────────────
@@ -120,8 +121,40 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
     // Emit current draw + marker state to parent
     const emitUpdate = () => {
       const data = drawRef.current?.getAll();
+      let snappedGeojson = null;
+
+      // Magnetic Snapping
+      if (data && data.features.length > 0) {
+        const feature = data.features[0];
+        if (feature.geometry.type === "LineString") {
+          const coords = [...feature.geometry.coordinates];
+          let mutated = false;
+          // Snap start if start pin exists
+          if (startCoord.current && coords.length > 0) {
+            coords[0] = startCoord.current;
+            mutated = true;
+          }
+          // Snap end if end pin exists
+          if (endCoord.current && coords.length > 1) {
+            coords[coords.length - 1] = endCoord.current;
+            mutated = true;
+          }
+
+          if (mutated) {
+            feature.geometry.coordinates = coords;
+            // Update the mapbox draw internal canvas state so the visual line locks onto the pin
+            try {
+              if (feature.id && drawRef.current) {
+                drawRef.current.add(feature);
+              }
+            } catch { /* ignore sync issues during heavy draw actions */ }
+          }
+        }
+        snappedGeojson = data;
+      }
+
       onRouteUpdateRef.current({
-        geojson: data && data.features.length > 0 ? data : null,
+        geojson: snappedGeojson,
         startMarker: startCoord.current,
         endMarker: endCoord.current,
       });
@@ -142,6 +175,37 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       undoLastPoint: () => {
         drawRef.current?.trash();
       },
+      generateAutoRoute: async () => {
+        const start = startCoord.current;
+        const end = endCoord.current;
+        const map = mapRef.current;
+        const draw = drawRef.current;
+        
+        if (!start || !end || !map || !draw) return;
+
+        try {
+          const url = `https://router.project-osrm.org/route/v1/driving/${start[0]},${start[1]};${end[0]},${end[1]}?geometries=geojson&overview=full`;
+          const res = await fetch(url);
+          const data = await res.json();
+          if (data.code === "Ok" && data.routes && data.routes.length > 0) {
+            const geometry = data.routes[0].geometry;
+            draw.deleteAll(); // Erase manually drawn routes
+            draw.add({
+              type: "Feature",
+              geometry: geometry,
+              properties: {}
+            });
+            emitUpdate(); // Push to parent explicitly
+            
+            const bounds = new mapboxgl.LngLatBounds();
+            bounds.extend(start);
+            bounds.extend(end);
+            map.fitBounds(bounds, { padding: 60, duration: 1000 });
+          }
+        } catch (err) {
+          console.error("[MapCanvas] OSRM Routing failed:", err);
+        }
+      }
     }));
 
     // ── React to activeMode prop changes ────────────────────────────────────
@@ -152,9 +216,9 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
 
       if (activeMode === "draw") {
         drawRef.current.changeMode("draw_line_string");
-        // MapboxDraw sets cursor automatically in draw mode
       } else {
-        try { drawRef.current.changeMode("simple_select"); } catch { /* safe */ }
+        // Enforcing 'static' mode prevents hijack of touch gestures (enables pinch to zoom!)
+        try { drawRef.current.changeMode("static"); } catch { /* safe */ }
         canvas.style.cursor =
           activeMode === "set-start" || activeMode === "set-end" ? "crosshair" : "";
       }
@@ -255,35 +319,7 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         }
       });
 
-      // ── Auto-Routing (OSRM) ───────────────────────────────────────────────
-      const fetchAutoRoute = async (start: [number, number], end: [number, number]) => {
-        try {
-          // Add a loading state if needed (currently silent)
-          const url = `https://router.project-osrm.org/route/v1/driving/${start[0]},${start[1]};${end[0]},${end[1]}?geometries=geojson&overview=full`;
-          const res = await fetch(url);
-          const data = await res.json();
-          if (data.code === "Ok" && data.routes && data.routes.length > 0) {
-            const geometry = data.routes[0].geometry;
-            if (drawRef.current) {
-              drawRef.current.deleteAll(); // Erase any manually drawn routes
-              drawRef.current.add({
-                type: "Feature",
-                geometry: geometry,
-                properties: {}
-              });
-              emitUpdate(); // Push mapped route to parent
-            }
-            
-            // Adjust bounds to show the whole route
-            const bounds = new mapboxgl.LngLatBounds();
-            bounds.extend(start);
-            bounds.extend(end);
-            map.fitBounds(bounds, { padding: 60, duration: 1000 });
-          }
-        } catch (err) {
-          console.error("[MapCanvas] OSRM Routing failed:", err);
-        }
-      };
+
 
       // ── Map click & touch → place marker ──────────────────────────────────
       const handleMarkerPlace = (e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent) => {
@@ -302,7 +338,6 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           startCoord.current = [e.lngLat.lng, e.lngLat.lat];
           emitUpdate();
           onModeCompleteRef.current();
-          didPlaceMarker = true;
         } else if (mode === "set-end") {
           endMarkerRef.current?.remove();
           endMarkerRef.current = new mapboxgl.Marker({
@@ -315,11 +350,6 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
           endCoord.current = [e.lngLat.lng, e.lngLat.lat];
           emitUpdate();
           onModeCompleteRef.current();
-          didPlaceMarker = true;
-        }
-
-        if (didPlaceMarker && startCoord.current && endCoord.current) {
-          fetchAutoRoute(startCoord.current, endCoord.current);
         }
       };
 

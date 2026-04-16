@@ -49,7 +49,8 @@ This project exists to show what's possible when you let users draw their own ro
 ## ✨ Features
 
 - 📍 **Geolocation Support**: Instantly center the map on your current position.
-- 🎨 **Interactive Drawing**: High-contrast drawing tools for custom line paths.
+- ⚙️ **Route Maker Modes**: Choose between *Automatic* (fetches real-world driving paths via OSRM) or *Manual* drawing modes.
+- 🎨 **Interactive Drawing & Snapping**: High-contrast drawing tools with endpoints that magnetically snap to your pins.
 - 📌 **Custom Markers**: Explicit "Driver Start" (Blue) and "Destination" (Red) pins.
 - 🔗 **Instant Link Generation**: Save your route to Supabase and get a shareable URL in one click.
 - 📱 **Mobile Optimized**: Fully responsive interface designed for use in the field.

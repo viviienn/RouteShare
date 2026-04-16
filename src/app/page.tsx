@@ -10,7 +10,7 @@ import MapCanvas, {
 import { saveRouteAction } from "./actions";
 import {
   Share2, Check, Copy, AlertCircle, Loader2,
-  PencilLine, Trash2, MapPin, Crosshair, ChevronDown, ChevronUp
+  PencilLine, Trash2, MapPin, Crosshair, ChevronDown, ChevronUp, Route, Settings
 } from "lucide-react";
 
 // ── Tool palette button ──────────────────────────────────────────────────────
@@ -65,8 +65,11 @@ const HINTS: Record<ToolMode, string | null> = {
 export default function Home() {
   const mapRef = useRef<MapCanvasHandle>(null);
   const boundsRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
 
   const [activeTool, setActiveTool] = useState<ToolMode>("idle");
+  const [activeTab, setActiveTab] = useState<"tools" | "settings">("tools");
+  const [routeMode, setRouteMode] = useState<"automatic" | "manual">("automatic");
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [isDesktop, setIsDesktop] = useState(true);
   const [routeData, setRouteData] = useState<RouteUpdateData | null>(null);
@@ -180,25 +183,29 @@ export default function Home() {
         accentColor="#EF4444"
         onClick={() => selectTool("set-end")}
       />
-      <ToolBtn
-        icon={<PencilLine className="w-5 h-5" style={{ color: "#00E5FF" }} />}
-        label="Draw Route"
-        active={activeTool === "draw"}
-        disabled={saved}
-        accentColor="#00C2D4"
-        onClick={() => selectTool("draw")}
-      />
+      {routeMode === "manual" && (
+        <ToolBtn
+          icon={<PencilLine className="w-5 h-5" style={{ color: "#00E5FF" }} />}
+          label="Draw Route"
+          active={activeTool === "draw"}
+          disabled={saved}
+          accentColor="#00C2D4"
+          onClick={() => selectTool("draw")}
+        />
+      )}
 
       <div className="h-px bg-white/10 mx-1 my-2" />
 
-      <ToolBtn
-        icon={<Crosshair className="w-5 h-5 text-neutral-400" />}
-        label="Undo Point"
-        active={false}
-        disabled={saved || !hasRoute}
-        accentColor="#71717a"
-        onClick={() => mapRef.current?.undoLastPoint()}
-      />
+      {routeMode === "manual" && (
+        <ToolBtn
+          icon={<Crosshair className="w-5 h-5 text-neutral-400" />}
+          label="Undo Point"
+          active={false}
+          disabled={saved || !hasRoute}
+          accentColor="#71717a"
+          onClick={() => mapRef.current?.undoLastPoint()}
+        />
+      )}
       <ToolBtn
         icon={<Trash2 className="w-5 h-5 text-red-400" />}
         label="Clear All"
@@ -228,8 +235,20 @@ export default function Home() {
         </div>
       )}
 
+      {/* Generate Route (Only Automatic mode) */}
+      {!saved && routeMode === "automatic" && !hasRoute && (
+        <button
+          onClick={() => mapRef.current?.generateAutoRoute()}
+          disabled={!routeData?.startMarker || !routeData?.endMarker}
+          className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-blue-600 hover:bg-blue-500 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-blue-600 text-white font-bold text-base transition-all shadow-2xl shadow-blue-500/25"
+        >
+          <Route className="w-5 h-5" />
+          Generate Route
+        </button>
+      )}
+
       {/* Generate button / Share link */}
-      {!saved ? (
+      {!saved && (!hasRoute && routeMode === "automatic" ? null : (
         <button
           onClick={handleSaveRoute}
           disabled={isSaving || !hasRoute}
@@ -242,7 +261,9 @@ export default function Home() {
           )}
           {isSaving ? "Saving…" : "Generate Share Link"}
         </button>
-      ) : (
+      ))}
+      
+      {saved && (
         <div className="flex flex-col gap-3 bg-neutral-950/90 backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-2xl">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -281,6 +302,33 @@ export default function Home() {
     </div>
   );
 
+  const renderSettings = () => (
+    <div className="px-2 py-4 flex flex-col gap-5">
+      <div>
+        <p className="text-sm font-semibold text-white mb-3">Route Maker Mode</p>
+        <div className="flex bg-black/40 rounded-xl p-1.5 border border-white/10 gap-1.5">
+          <button 
+           onClick={() => {
+             setRouteMode("automatic");
+             if (activeTool === "draw") setActiveTool("idle");
+           }}
+           className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-colors ${routeMode === "automatic" ? "bg-cyan-500/20 text-cyan-400 shadow-md" : "text-neutral-400 hover:text-white"}`}>
+            Automatic
+          </button>
+          <button 
+           onClick={() => setRouteMode("manual")}
+           className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-colors ${routeMode === "manual" ? "bg-cyan-500/20 text-cyan-400 shadow-md" : "text-neutral-400 hover:text-white"}`}>
+            Manual
+          </button>
+        </div>
+        <p className="text-[11px] text-neutral-500 mt-3 leading-relaxed px-1">
+          <strong className="text-neutral-300">Automatic:</strong> Fetches real driving routes from the road network. <br/>
+          <strong className="text-neutral-300 mt-1 block">Manual:</strong> Allows drawing arbitrary custom lines anywhere off-road.
+        </p>
+      </div>
+    </div>
+  );
+
   return (
     <main ref={boundsRef} className="w-screen h-[100dvh] relative overflow-hidden bg-neutral-950">
       {/* ── Full-screen map ─────────────────────────────────────────────── */}
@@ -297,18 +345,23 @@ export default function Home() {
         dragConstraints={boundsRef}
         dragMomentum={false}
         layout
+        onDragStart={() => { isDragging.current = true; }}
+        onDragEnd={() => { setTimeout(() => { isDragging.current = false; }, 50); }}
         className={`absolute z-30 ${isDesktop ? 'left-4 top-20 cursor-grab active:cursor-grabbing' : 'left-4 right-4 bottom-[env(safe-area-inset-bottom,16px)]'} w-auto md:w-[320px] flex flex-col bg-neutral-900/95 backdrop-blur-xl border border-white/10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.4)] overflow-hidden`}
       >
         {/* Header / Toggle */}
         <motion.div 
           layout="position"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          onClick={() => {
+            if (isDragging.current) return;
+            setIsMenuOpen(!isMenuOpen);
+          }}
           className={`flex items-center justify-between w-full px-5 py-4 cursor-pointer select-none ${isMenuOpen ? 'bg-neutral-900/50' : 'bg-transparent'}`}
         >
           <p className="text-[11px] font-bold text-neutral-500 uppercase tracking-widest">
-            Tools
+            RouteShare Menu
           </p>
-          <button className="p-1.5 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
+          <button className="p-1.5 rounded-full bg-white/5 hover:bg-white/10 transition-colors pointer-events-none">
             <motion.div animate={{ rotate: isMenuOpen ? 0 : -180 }} transition={{ duration: 0.3 }}>
               <ChevronDown className="w-4 h-4 text-neutral-300" />
             </motion.div>
@@ -326,10 +379,15 @@ export default function Home() {
               transition={{ duration: 0.3, ease: "easeInOut" }}
               className="flex-col flex"
             >
-              <div className="max-h-[70vh] md:max-h-[80vh] flex flex-col">
-                {/* Scrollable Tool Buttons List */}
+              <div className="flex border-b border-white/10 bg-neutral-900/50">
+                 <button onClick={() => setActiveTab("tools")} className={`flex-1 py-3 text-[11px] font-bold uppercase tracking-widest transition-colors ${activeTab === "tools" ? "text-cyan-400 border-b-2 border-cyan-400 bg-white/5" : "text-neutral-500 hover:text-neutral-300"}`}>Tools</button>
+                 <button onClick={() => setActiveTab("settings")} className={`flex-1 py-3 text-[11px] font-bold uppercase tracking-widest transition-colors ${activeTab === "settings" ? "text-cyan-400 border-b-2 border-cyan-400 bg-white/5" : "text-neutral-500 hover:text-neutral-300"}`}>Settings</button>
+              </div>
+
+              <div className="max-h-[60vh] md:max-h-[75vh] flex flex-col pt-1.5">
+                {/* Scrollable Area */}
                 <div className="flex-1 overflow-y-auto px-3 pb-3 flex flex-col gap-1.5 custom-scrollbar">
-                  {renderToolButtons()}
+                  {activeTab === "tools" ? renderToolButtons() : renderSettings()}
                 </div>
                 
                 {/* Docked Bottom Actions (Share, Error, Hint) */}
