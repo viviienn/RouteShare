@@ -399,8 +399,32 @@ export default function Home() {
 
               <div className="max-h-[60vh] md:max-h-[75vh] flex flex-col pt-1.5">
                 {/* Scrollable Area */}
-                <div className="flex-1 overflow-y-auto px-3 pb-3 flex flex-col gap-1.5 custom-scrollbar">
-                  {activeTab === "tools" ? renderToolButtons() : renderSettings()}
+                <div className="flex-1 overflow-y-auto px-3 pb-3 flex flex-col custom-scrollbar">
+                  <AnimatePresence mode="wait">
+                    {activeTab === "tools" ? (
+                      <motion.div
+                        key="tools"
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -6 }}
+                        transition={{ duration: 0.2 }}
+                        className="flex flex-col gap-1.5"
+                      >
+                        {renderToolButtons()}
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="settings"
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -6 }}
+                        transition={{ duration: 0.2 }}
+                        className="flex flex-col gap-1.5"
+                      >
+                        {renderSettings()}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
                 
                 {/* Docked Bottom Actions (Share, Error, Hint) */}
