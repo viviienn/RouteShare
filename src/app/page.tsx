@@ -9,9 +9,10 @@ import MapCanvas, {
 } from "@/components/MapCanvas";
 import Link from "next/link";
 import { saveRouteAction } from "./actions";
+import OpenInMapsModal from "@/components/OpenInMapsModal";
 import {
   Share2, Check, Copy, AlertCircle, Loader2,
-  PencilLine, Trash2, MapPin, Crosshair, ChevronDown, ChevronUp, Route, Settings, FileText
+  PencilLine, Trash2, MapPin, Crosshair, ChevronDown, ChevronUp, Route, Settings, FileText, Navigation
 } from "lucide-react";
 
 // ── Tool palette button ──────────────────────────────────────────────────────
@@ -74,6 +75,7 @@ export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [isDesktop, setIsDesktop] = useState(true);
   const [routeData, setRouteData] = useState<RouteUpdateData | null>(null);
+  const [mapsModalOpen, setMapsModalOpen] = useState(false);
 
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth >= 768);
@@ -245,6 +247,17 @@ export default function Home() {
         >
           <Route className="w-5 h-5" />
           Generate Route
+        </button>
+      )}
+
+      {/* Open in Maps — visible once start + end pins exist */}
+      {routeData?.startMarker && routeData?.endMarker && (
+        <button
+          onClick={() => setMapsModalOpen(true)}
+          className="w-full flex items-center justify-center gap-3 py-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 hover:bg-cyan-500/20 active:scale-[0.98] text-cyan-400 hover:text-cyan-300 font-semibold text-sm transition-all"
+        >
+          <Navigation className="w-4 h-4" />
+          Open in Maps
         </button>
       )}
 
@@ -436,6 +449,25 @@ export default function Home() {
           )}
         </AnimatePresence>
       </motion.div>
+      {/* ── Open in Maps Modal ───────────────────────────────────────── */}
+      <OpenInMapsModal
+        isOpen={mapsModalOpen}
+        onClose={() => setMapsModalOpen(false)}
+        startCoord={routeData?.startMarker ?? null}
+        endCoord={routeData?.endMarker ?? null}
+        waypoints={
+          routeData?.geojson?.features
+            .find(f => f.geometry?.type === "LineString")
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ?.geometry.type === "LineString"
+            ? (routeData!.geojson!.features
+                .find(f => f.geometry?.type === "LineString")!
+                .geometry as GeoJSON.LineString).coordinates.filter((_, i, arr) =>
+                  i > 0 && i < arr.length - 1 && i % Math.max(1, Math.floor(arr.length / 8)) === 0
+                ) as [number, number][]
+            : []
+        }
+      />
     </main>
   );
 }

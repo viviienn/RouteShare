@@ -7,8 +7,9 @@ import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 
 import React, { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
-import { Copy, Check, ArrowLeft, Info } from "lucide-react";
+import { Copy, Check, ArrowLeft, Info, Navigation } from "lucide-react";
 import Link from "next/link";
+import OpenInMapsModal, { extractMapCoords } from "./OpenInMapsModal";
 
 interface RouteViewerProps {
   geojson: GeoJSON.FeatureCollection;
@@ -43,6 +44,9 @@ export default function RouteViewer({ geojson }: RouteViewerProps) {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const [mapReady, setMapReady] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [mapsModalOpen, setMapsModalOpen] = useState(false);
+
+  const { startCoord, endCoord, waypoints } = extractMapCoords(geojson);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -274,6 +278,17 @@ export default function RouteViewer({ geojson }: RouteViewerProps) {
                   <><Copy className="w-4 h-4" />Copy Link</>
                 )}
               </button>
+
+              {/* Open in Maps */}
+              {startCoord && endCoord && (
+                <button
+                  onClick={() => setMapsModalOpen(true)}
+                  className="w-full h-10 flex items-center justify-center gap-2 rounded-xl text-sm font-semibold transition-all bg-cyan-500/10 border border-cyan-500/20 hover:bg-cyan-500/20 text-cyan-400 hover:text-cyan-300"
+                >
+                  <Navigation className="w-4 h-4" />
+                  Open in Maps
+                </button>
+              )}
             </div>
           </div>
           
@@ -283,6 +298,14 @@ export default function RouteViewer({ geojson }: RouteViewerProps) {
           </div>
         </div>
       )}
+
+      <OpenInMapsModal
+        isOpen={mapsModalOpen}
+        onClose={() => setMapsModalOpen(false)}
+        startCoord={startCoord}
+        endCoord={endCoord}
+        waypoints={waypoints}
+      />
     </main>
   );
 }
