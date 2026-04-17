@@ -12,7 +12,7 @@ import { saveRouteAction } from "./actions";
 import OpenInMapsModal from "@/components/OpenInMapsModal";
 import {
   Share2, Check, Copy, AlertCircle, Loader2,
-  PencilLine, Trash2, MapPin, Crosshair, ChevronDown, ChevronUp, Route, Settings, FileText, Navigation
+  PencilLine, Trash2, MapPin, Crosshair, ChevronDown, ChevronUp, Route, Settings, FileText, Navigation, X
 } from "lucide-react";
 
 // ── Tool palette button ──────────────────────────────────────────────────────
@@ -76,6 +76,7 @@ export default function Home() {
   const [isDesktop, setIsDesktop] = useState(true);
   const [routeData, setRouteData] = useState<RouteUpdateData | null>(null);
   const [mapsModalOpen, setMapsModalOpen] = useState(false);
+  const [showBanner, setShowBanner] = useState(true);
 
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth >= 768);
@@ -250,16 +251,6 @@ export default function Home() {
         </button>
       )}
 
-      {/* Open in Maps — visible once start + end pins exist */}
-      {routeData?.startMarker && routeData?.endMarker && (
-        <button
-          onClick={() => setMapsModalOpen(true)}
-          className="w-full flex items-center justify-center gap-3 py-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 hover:bg-cyan-500/20 active:scale-[0.98] text-cyan-400 hover:text-cyan-300 font-semibold text-sm transition-all"
-        >
-          <Navigation className="w-4 h-4" />
-          Open in Maps
-        </button>
-      )}
 
       {/* Generate button / Share link */}
       {!saved && (!hasRoute && routeMode === "automatic" ? null : (
@@ -449,6 +440,16 @@ export default function Home() {
           )}
         </AnimatePresence>
       </motion.div>
+      {/* Live Announcement Banner */}
+      {showBanner && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-neutral-900/95 border-b border-white/10 text-neutral-300 p-3 flex items-center justify-between">
+          <span className="text-sm font-medium">v1.1.0 Out Now! Export your routes directly to Apple & Google Maps.</span>
+          <button onClick={() => setShowBanner(false)} className="p-1 rounded-full bg-white/5 hover:bg-white/10 transition-colors text-neutral-400">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* ── Open in Maps Modal ───────────────────────────────────────── */}
       <OpenInMapsModal
         isOpen={mapsModalOpen}

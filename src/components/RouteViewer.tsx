@@ -283,9 +283,9 @@ export default function RouteViewer({ geojson }: RouteViewerProps) {
               {startCoord && endCoord && (
                 <button
                   onClick={() => setMapsModalOpen(true)}
-                  className="w-full h-10 flex items-center justify-center gap-2 rounded-xl text-sm font-semibold transition-all bg-cyan-500/10 border border-cyan-500/20 hover:bg-cyan-500/20 text-cyan-400 hover:text-cyan-300"
+                  className="w-full flex items-center justify-center gap-3 py-4 rounded-xl text-lg font-semibold transition-all bg-cyan-500/10 border border-cyan-500/20 hover:bg-cyan-500/20 active:scale-[0.98] text-cyan-400 hover:text-cyan-300"
                 >
-                  <Navigation className="w-4 h-4" />
+                  <Navigation className="w-5 h-5" />
                   Open in Maps
                 </button>
               )}

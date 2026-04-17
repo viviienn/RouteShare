@@ -163,15 +163,15 @@ export default function OpenInMapsModal({
                     href={appleUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`group flex items-center gap-4 w-full p-4 rounded-2xl border transition-all
-                      ${platform === "ios"
+                    className={`group flex items-center gap-4 w-full p-4 rounded-2xl border transition-all ${
+                      platform === "ios"
                         ? "border-white/20 bg-white/5 hover:bg-white/10"
                         : "border-white/10 bg-white/[0.03] hover:bg-white/[0.07]"
-                      }`}
+                    }`}
                   >
-                    {/* Apple Maps Icon */}
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg
-                      ${platform === "ios" ? "bg-gradient-to-br from-sky-400 to-blue-600" : "bg-neutral-800"}`}>
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg ${
+                      platform === "ios" ? "bg-gradient-to-br from-sky-400 to-blue-600" : "bg-neutral-800"
+                    }`}>
                       <svg className="w-7 h-7" viewBox="0 0 24 24" fill="white">
                         <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
                       </svg>
@@ -196,15 +196,15 @@ export default function OpenInMapsModal({
                     href={googleUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`group flex items-center gap-4 w-full p-4 rounded-2xl border transition-all
-                      ${platform !== "ios"
+                    className={`group flex items-center gap-4 w-full p-4 rounded-2xl border transition-all ${
+                      platform !== "ios"
                         ? "border-white/20 bg-white/5 hover:bg-white/10"
                         : "border-white/10 bg-white/[0.03] hover:bg-white/[0.07]"
-                      }`}
+                    }`}
                   >
-                    {/* Google Maps colour logo */}
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg
-                      ${platform !== "ios" ? "bg-white" : "bg-neutral-800"}`}>
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg ${
+                      platform !== "ios" ? "bg-white" : "bg-neutral-800"
+                    }`}>
                       <svg className="w-7 h-7" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#EA4335"/>
                         <path d="M12 2c-1.93 0-3.68.78-4.95 2.05L12 9l4.95-4.95C15.68 2.78 13.93 2 12 2z" fill="#4285F4"/>
@@ -216,7 +216,9 @@ export default function OpenInMapsModal({
                     <div className="text-left flex-1">
                       <p className="text-white font-semibold text-sm">Google Maps</p>
                       <p className="text-neutral-500 text-xs mt-0.5">
-                        {platform !== "ios" ? (platform === "android" ? "Recommended for your device" : "Best for desktop & Android") : "Works on all platforms"}
+                        {platform !== "ios"
+                          ? (platform === "android" ? "Recommended for your device" : "Best for desktop & Android")
+                          : "Works on all platforms"}
                       </p>
                     </div>
                     {platform !== "ios" && (
