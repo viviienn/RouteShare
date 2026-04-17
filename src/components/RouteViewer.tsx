@@ -9,6 +9,7 @@ import React, { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import { Copy, Check, ArrowLeft, Info, Navigation } from "lucide-react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import OpenInMapsModal, { extractMapCoords } from "./OpenInMapsModal";
 
 interface RouteViewerProps {
@@ -278,17 +279,6 @@ export default function RouteViewer({ geojson }: RouteViewerProps) {
                   <><Copy className="w-4 h-4" />Copy Link</>
                 )}
               </button>
-
-              {/* Open in Maps */}
-              {startCoord && endCoord && (
-                <button
-                  onClick={() => setMapsModalOpen(true)}
-                  className="w-full flex items-center justify-center gap-3 py-4 rounded-xl text-lg font-semibold transition-all bg-cyan-500/10 border border-cyan-500/20 hover:bg-cyan-500/20 active:scale-[0.98] text-cyan-400 hover:text-cyan-300"
-                >
-                  <Navigation className="w-5 h-5" />
-                  Open in Maps
-                </button>
-              )}
             </div>
           </div>
           
@@ -298,6 +288,31 @@ export default function RouteViewer({ geojson }: RouteViewerProps) {
           </div>
         </div>
       )}
+
+      {/* Floating Primary Action: Open in Maps */}
+      <AnimatePresence>
+        {mapReady && startCoord && endCoord && (
+          <motion.div
+            initial={{ y: 100, opacity: 0, x: "-50%" }}
+            animate={{ y: 0, opacity: 1, x: "-50%" }}
+            className="fixed bottom-10 left-1/2 z-40 w-full max-w-[340px] px-6"
+          >
+            <div className="bg-neutral-900/80 backdrop-blur-2xl border border-white/5 rounded-[2.5rem] p-6 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)] flex flex-col items-center gap-5">
+              <div className="text-center">
+                <h3 className="text-white font-bold text-lg tracking-tight">Ready to navigate?</h3>
+                <p className="text-neutral-500 text-xs mt-1">Export this route directly to your device.</p>
+              </div>
+              <button
+                onClick={() => setMapsModalOpen(true)}
+                className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-cyan-500 text-neutral-950 font-bold text-sm shadow-[0_8px_20px_rgba(0,229,255,0.3)] hover:bg-cyan-400 hover:shadow-[0_12px_24px_rgba(0,229,255,0.4)] active:scale-95 transition-all"
+              >
+                <Navigation className="w-5 h-5" />
+                Open in Maps
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <OpenInMapsModal
         isOpen={mapsModalOpen}

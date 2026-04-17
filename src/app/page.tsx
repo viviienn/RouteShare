@@ -9,10 +9,9 @@ import MapCanvas, {
 } from "@/components/MapCanvas";
 import Link from "next/link";
 import { saveRouteAction } from "./actions";
-import OpenInMapsModal from "@/components/OpenInMapsModal";
 import {
   Share2, Check, Copy, AlertCircle, Loader2,
-  PencilLine, Trash2, MapPin, Crosshair, ChevronDown, ChevronUp, Route, Settings, FileText, Navigation, X
+  PencilLine, Trash2, MapPin, Crosshair, ChevronDown, ChevronUp, Route, Settings, FileText, X
 } from "lucide-react";
 
 // ── Tool palette button ──────────────────────────────────────────────────────
@@ -75,7 +74,6 @@ export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [isDesktop, setIsDesktop] = useState(true);
   const [routeData, setRouteData] = useState<RouteUpdateData | null>(null);
-  const [mapsModalOpen, setMapsModalOpen] = useState(false);
   const [showBanner, setShowBanner] = useState(true);
 
   useEffect(() => {
@@ -441,34 +439,26 @@ export default function Home() {
         </AnimatePresence>
       </motion.div>
       {/* Live Announcement Banner */}
-      {showBanner && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-neutral-900/95 border-b border-white/10 text-neutral-300 p-3 flex items-center justify-between">
-          <span className="text-sm font-medium">v1.1.0 Out Now! Export your routes directly to Apple & Google Maps.</span>
-          <button onClick={() => setShowBanner(false)} className="p-1 rounded-full bg-white/5 hover:bg-white/10 transition-colors text-neutral-400">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-
-      {/* ── Open in Maps Modal ───────────────────────────────────────── */}
-      <OpenInMapsModal
-        isOpen={mapsModalOpen}
-        onClose={() => setMapsModalOpen(false)}
-        startCoord={routeData?.startMarker ?? null}
-        endCoord={routeData?.endMarker ?? null}
-        waypoints={
-          routeData?.geojson?.features
-            .find(f => f.geometry?.type === "LineString")
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            ?.geometry.type === "LineString"
-            ? (routeData!.geojson!.features
-                .find(f => f.geometry?.type === "LineString")!
-                .geometry as GeoJSON.LineString).coordinates.filter((_, i, arr) =>
-                  i > 0 && i < arr.length - 1 && i % Math.max(1, Math.floor(arr.length / 8)) === 0
-                ) as [number, number][]
-            : []
-        }
-      />
+      <AnimatePresence>
+        {showBanner && (
+          <motion.div
+            initial={{ y: -40, opacity: 0, x: "-50%" }}
+            animate={{ y: 0, opacity: 1, x: "-50%" }}
+            exit={{ y: -40, opacity: 0, x: "-50%" }}
+            className="fixed top-2 left-1/2 z-50 bg-neutral-900/95 backdrop-blur-md border border-white/5 pl-4 pr-3 py-1 rounded-full shadow-xl flex items-center gap-3"
+          >
+            <span className="text-[10px] font-bold text-red-500 uppercase tracking-[0.2em] whitespace-nowrap">
+              v1.1.0 – Export to Maps now available
+            </span>
+            <button 
+              onClick={() => setShowBanner(false)} 
+              className="hover:bg-white/10 rounded-full p-0.5 transition-colors"
+            >
+              <X className="w-3.5 h-3.5 text-neutral-600 hover:text-white" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }
