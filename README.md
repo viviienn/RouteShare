@@ -80,11 +80,11 @@ npm install
 ```
 
 ### 3. Configure Environment Variables
-Create a `.env.local` file in the root directory:
+Create a `.env.local` file in the root directory (This now uses ur publishable key rather than legacy anon key, I have changed this following the vercel security breach):
 ```bash
 NEXT_PUBLIC_MAPBOX_TOKEN=your_mapbox_public_token
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
 ```
 
 ### 4. Database Setup
