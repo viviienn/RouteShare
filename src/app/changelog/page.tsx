@@ -15,86 +15,98 @@ interface ChangelogEntry {
 
 const CHANGELOG: ChangelogEntry[] = [
   {
-    version: "April 16, 2026",
-    date: "Routing & Animations",
-    description: "Introduced road-snapping infrastructure, massive UI improvements, and interactive settings.",
+    version: "v1.1.1",
+    date: "April 21, 2026",
+    description: "Emergency infrastructure patch following the Vercel environment variable security event.",
+    changes: [
+      {
+        category: "fixed",
+        items: [
+          "Legacy Supabase JWT Keys: Deprecated 'anon' and 'service_role' tokens in favor of the new Publishable and Secret key architecture.",
+          "Security Boundary Hardening: Reconfigured server initialization logic to explicitly isolate Secret keys from the browser bundle.",
+          "Vercel Environment Leak Mitigation: Rotated all project secrets and updated environment variable naming conventions to meet 2026 security standards."
+        ],
+      }
+    ],
+  },
+  {
+    version: "v1.1.0",
+    date: "April 17, 2026",
+    description: "Polishing the professional experience and navigation UI.",
     changes: [
       {
         category: "added",
         items: [
-          "Auto-Routing Engine (OSRM integration) natively snaps pins to actual driving roads.",
-          "Route Maker Modes: Added 'Automatic' and 'Manual' routing options via a new Settings tab.",
-          "Magnetic point snapping for 'Manual' paths ensuring endpoints lock perfectly onto markers.",
-          "Framer Motion animations for butter-smooth UI physics and drawer height transitions.",
-          "Changelog page to track project history natively.",
-          "Animated Framer Motion page transitions for seamlessly swapping paths."
-        ],
-      },
-      {
-        category: "fixed",
-        items: [
-          "Mobile touch sensitivity: Resolved drawing tools hijacking native pinch-to-zoom gestures by dynamically freezing Mapbox engine states.",
-          "Framer Motion drag events unintentionally triggering menu toggles when releasing a swipe.",
-          "Bottom action button layout collisions on smaller mobile screens.",
+          "Premium CTA: Redesigned the 'Open in Maps' action into a prominent floating card for shared route views.",
+          "Dynamic Banner: Introduced the compact, non-obtrusive version announcement header.",
         ],
       },
       {
         category: "changed",
         items: [
-          "Upgraded into a single 'Unified Toolbox' that floats gracefully on desktop and anchors dynamically on mobile.",
-          "Replaced hardcoded action placements to ensure the 'Generate Share Link' button stays firmly attached to the drawer footer.",
-        ],
-      },
-      {
-        category: "removed",
-        items: [
-          "Removed the 'Vaul' drawer library in favor of Framer Motion for better parity between Desktop and Mobile.",
+          "UI De-cluttering: Removed redundant action buttons from the route creation view to focus on the map canvas.",
+          "Banner Aesthetics: Refined typography and color contrast for better readability in dark mode.",
         ],
       },
     ],
   },
   {
-    version: "April 15, 2026",
-    date: "Mobile Responsive Overhaul",
-    description: "Re-engineered the interface to prioritize mobile users interacting with the map.",
+    version: "v1.0.5",
+    date: "April 16, 2026",
+    description: "Introduced road-snapping infrastructure and interactive settings.",
     changes: [
       {
         category: "added",
         items: [
-          "Unified collapsible toolbox layout that adapts conditionally to desktop grids and smart mobile panels.",
-          "Mobile-native bottom drawer infrastructure optimized for thumb reachability.",
+          "Auto-Routing Engine: Native OSRM integration snaps pins to actual driving roads automatically.",
+          "Routing Modes: Added 'Automatic' and 'Manual' toggles via a redesigned Settings tab.",
+          "Magnetic point snapping for 'Manual' paths ensuring endpoints lock perfectly onto markers.",
         ],
       },
       {
         category: "fixed",
         items: [
-          "Significantly expanded interactive hitboxes (touch targets) across Mapbox pins and node vertices for easier tapping.",
-          "Viewport cutoff bugs preventing map touch events on certain mobile browsers.",
-        ]
-      }
+          "Bottom action button layout collisions on smaller mobile screens.",
+          "Framer Motion drag events unintentionally triggering menu toggles when releasing a swipe.",
+        ],
+      },
     ],
   },
   {
-    version: "April 14, 2026",
-    date: "Public Core Architecture Launch",
-    description: "The initial debut of RouteShare to bridge driver and customer logistics.",
+    version: "v1.0.1",
+    date: "April 15, 2026",
+    description: "Mobile-first responsive overhaul and touch optimization.",
     changes: [
       {
         category: "added",
         items: [
-          "Mapbox GL JS and Mapbox Draw integration supporting custom polyline tracking.",
-          "Supabase backend synchronization with strictly configured Row Level Security (RLS).",
-          "Responsive, high-contrast dark aesthetic.",
-          "Custom SVG Mapbox Markers indicating 'Driver Start' vs 'Destination'.",
-          "Comprehensive README encompassing vision, technical architecture, and implementation rationale."
+          "Swipeable Bottom Sheet: Built a native-feeling drawer layout for tool management on mobile.",
+          "Viewport Lock: Implemented rubber-banding prevention to keep the map steady during interaction.",
         ],
       },
-       {
+      {
         category: "fixed",
         items: [
-          "React hydration and Next.js button title prop build warnings."
-        ]
-       }
+          "Touch Targets: Expanded interactive hitboxes to 44x44px for easier finger tapping.",
+          "Pinch-to-Zoom: Fixed drawing tools hijacking native gestures by dynamically freezing Mapbox states.",
+        ],
+      },
+    ],
+  },
+  {
+    version: "v1.0.0",
+    date: "April 13, 2026",
+    description: "Initial debut of RouteShare core architecture.",
+    changes: [
+      {
+        category: "added",
+        items: [
+          "Mapbox GL JS & Draw integration for custom polyline tracking.",
+          "Supabase Backend: Initial sync with strict Row Level Security (RLS) policies.",
+          "GeoJSON Validation: Server-side payload sanitization for secure route sharing.",
+          "High-Contrast Dark Mode: Custom-tuned canvas theme for professional aesthetics.",
+        ],
+      },
     ],
   },
 ];
