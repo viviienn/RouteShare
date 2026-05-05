@@ -5,6 +5,9 @@
   --color-accent: #6366f1;
 }
 
+@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Ensure the full viewport chain has explicit dimensions */
 html,
 body {
@@ -74,4 +77,10 @@ body {
 
 .mapboxgl-ctrl-icon {
   filter: invert(1);
+}
+
+/* Completely hide Mapbox attribution and logo */
+.mapboxgl-ctrl-bottom-left,
+.mapboxgl-ctrl-bottom-right .mapboxgl-ctrl-attrib {
+  display: none !important;
 }

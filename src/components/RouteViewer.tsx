@@ -11,6 +11,7 @@ import { Copy, Check, ArrowLeft, Info, Navigation } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import OpenInMapsModal, { extractMapCoords } from "./OpenInMapsModal";
+import { useTheme } from "@/hooks/useTheme";
 
 interface RouteViewerProps {
   geojson: GeoJSON.FeatureCollection;
@@ -48,6 +49,16 @@ export default function RouteViewer({ geojson }: RouteViewerProps) {
   const [mapsModalOpen, setMapsModalOpen] = useState(false);
 
   const { startCoord, endCoord, waypoints } = extractMapCoords(geojson);
+  const { theme } = useTheme();
+
+  useEffect(() => {
+    if (mapRef.current && mapReady) {
+      const styleUrl = theme === "dark" 
+        ? "mapbox://styles/mapbox/dark-v11" 
+        : "mapbox://styles/mapbox/light-v11";
+      mapRef.current.setStyle(styleUrl);
+    }
+  }, [theme, mapReady]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -78,7 +89,6 @@ export default function RouteViewer({ geojson }: RouteViewerProps) {
     mapRef.current = map;
 
     map.addControl(new mapboxgl.NavigationControl(), "top-right");
-    map.addControl(new mapboxgl.AttributionControl({ compact: true }), "bottom-right");
 
     map.on("load", () => {
       if (cancelled) return;
@@ -98,35 +108,49 @@ export default function RouteViewer({ geojson }: RouteViewerProps) {
       console.log("[RouteViewer] Counts - lines:", lineFeatures.length, "start:", !!startFeature, "end:", !!endFeature);
 
       // ── Add route line source & layer ───────────────────────────────────
-      if (lineFeatures.length > 0) {
-        map.addSource("route", {
-          type: "geojson",
-          data: { type: "FeatureCollection", features: lineFeatures },
-        });
+      const addRouteLayers = () => {
+        if (lineFeatures.length > 0) {
+          if (!map.getSource("route")) {
+            map.addSource("route", {
+              type: "geojson",
+              data: { type: "FeatureCollection", features: lineFeatures },
+            });
+          }
 
-        // Background glow
-        map.addLayer({
-          id: "route-glow",
-          type: "line",
-          source: "route",
-          layout: { "line-cap": "round", "line-join": "round" },
-          paint: {
-            "line-color": "#FFFFFF",
-            "line-width": 14,
-            "line-opacity": 0.08,
-            "line-blur": 6,
-          },
-        });
+          if (!map.getLayer("route-glow")) {
+            map.addLayer({
+              id: "route-glow",
+              type: "line",
+              source: "route",
+              layout: { "line-cap": "round", "line-join": "round" },
+              paint: {
+                "line-color": "#FFFFFF",
+                "line-width": 14,
+                "line-opacity": 0.08,
+                "line-blur": 6,
+              },
+            });
+          }
 
-        // Core bright line
-        map.addLayer({
-          id: "route-line",
-          type: "line",
-          source: "route",
-          layout: { "line-cap": "round", "line-join": "round" },
-          paint: { "line-color": "#00E5FF", "line-width": 6 },
-        });
-      }
+          if (!map.getLayer("route-line")) {
+            map.addLayer({
+              id: "route-line",
+              type: "line",
+              source: "route",
+              layout: { "line-cap": "round", "line-join": "round" },
+              paint: { "line-color": "#00E5FF", "line-width": 6 },
+            });
+          }
+        }
+      };
+
+      addRouteLayers();
+
+      // Whenever the base style is swapped (e.g. dark mode toggle), the manual layers are lost.
+      // We must re-add them when the new style finishes loading.
+      map.on("style.load", () => {
+        if (!cancelled) addRouteLayers();
+      });
 
       // ── Add markers ─────────────────────────────────────────────────────
       if (startFeature && startFeature.geometry.type === "Point") {
@@ -205,7 +229,7 @@ export default function RouteViewer({ geojson }: RouteViewerProps) {
         position: "relative",
         width: "100vw",
         height: "100vh",
-        backgroundColor: "#0a0a0a",
+        backgroundColor: theme === "dark" ? "#0a0a0a" : "#f5f5f5",
         overflow: "hidden",
       }}
     >

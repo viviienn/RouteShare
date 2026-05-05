@@ -8,6 +8,7 @@ import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import React, { useEffect, useRef, useImperativeHandle, forwardRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
+import { useTheme } from "@/hooks/useTheme";
 
 // ── Exported types ──────────────────────────────────────────────────────────
 export type ToolMode = "idle" | "set-start" | "set-end" | "draw";
@@ -117,6 +118,16 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
 
     // "locating" shows spinner; "ready" reveals the map
     const [locStatus, setLocStatus] = useState<"locating" | "ready">("locating");
+    const { theme } = useTheme();
+
+    useEffect(() => {
+      if (mapRef.current && mapReadyRef.current) {
+        const styleUrl = theme === "dark" 
+          ? "mapbox://styles/mapbox/dark-v11" 
+          : "mapbox://styles/mapbox/light-v11";
+        mapRef.current.setStyle(styleUrl);
+      }
+    }, [theme]);
 
     // Emit current draw + marker state to parent
     const emitUpdate = () => {
@@ -255,7 +266,7 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       // ── Initialize map immediately with London fallback ───────────────────
       const map = new mapboxgl.Map({
         container,
-        style: "mapbox://styles/mapbox/dark-v11",
+        style: theme === "dark" ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mapbox/light-v11",
         center: LONDON,
         zoom: 12,
         pitch: 20,
@@ -288,7 +299,6 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
       drawRef.current = draw;
       map.addControl(draw as unknown as mapboxgl.IControl);
       map.addControl(new mapboxgl.NavigationControl(), "top-right");
-      map.addControl(new mapboxgl.AttributionControl({ compact: true }), "bottom-right");
 
       // ── After style is fully loaded ───────────────────────────────────────
       map.on("load", () => {

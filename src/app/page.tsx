@@ -9,9 +9,10 @@ import MapCanvas, {
 } from "@/components/MapCanvas";
 import Link from "next/link";
 import { saveRouteAction } from "./actions";
+import { useTheme } from "@/hooks/useTheme";
 import {
   Share2, Check, Copy, AlertCircle, Loader2,
-  PencilLine, Trash2, MapPin, Crosshair, ChevronDown, ChevronUp, Route, Settings, FileText, X
+  PencilLine, Trash2, MapPin, Crosshair, ChevronDown, ChevronUp, Route, Settings, FileText, X, Moon, Sun
 } from "lucide-react";
 
 // ── Tool palette button ──────────────────────────────────────────────────────
@@ -75,6 +76,7 @@ export default function Home() {
   const [isDesktop, setIsDesktop] = useState(true);
   const [routeData, setRouteData] = useState<RouteUpdateData | null>(null);
   const [showBanner, setShowBanner] = useState(true);
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth >= 768);
@@ -328,6 +330,24 @@ export default function Home() {
           <strong className="text-neutral-300">Automatic:</strong> Fetches real driving routes from the road network. <br/>
           <strong className="text-neutral-300 mt-1 block">Manual:</strong> Allows drawing arbitrary custom lines anywhere off-road.
         </p>
+      </div>
+
+      <div className="h-px bg-white/10 w-full" />
+
+      <div>
+        <p className="text-sm font-semibold text-white mb-3">Appearance</p>
+        <button 
+          onClick={toggleTheme}
+          className="flex items-center justify-between w-full px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 active:bg-white/15 transition-all"
+        >
+          <div className="flex items-center gap-3">
+            {theme === "dark" ? <Moon className="w-5 h-5 text-cyan-400" /> : <Sun className="w-5 h-5 text-amber-400" />}
+            <span className="text-sm font-medium text-white">{theme === "dark" ? "Dark Mode" : "Light Mode"}</span>
+          </div>
+          <div className={`w-10 h-6 rounded-full p-1 transition-colors ${theme === "dark" ? "bg-cyan-500" : "bg-neutral-600"}`}>
+            <div className={`w-4 h-4 rounded-full bg-white transition-transform ${theme === "dark" ? "translate-x-4" : "translate-x-0"}`} />
+          </div>
+        </button>
       </div>
 
       <div className="h-px bg-white/10 w-full" />
