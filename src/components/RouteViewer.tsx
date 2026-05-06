@@ -163,42 +163,70 @@ export default function RouteViewer({ geojson }: RouteViewerProps) {
 
       // ── Add route line source & layer ───────────────────────────────────
       const addRouteLayers = () => {
-        if (lineFeatures.length > 0) {
-          if (!map.getSource("route")) {
-            map.addSource("route", {
-              type: "geojson",
-              data: { type: "FeatureCollection", features: lineFeatures },
-            });
-          }
+        // We add the source even if empty so we can update it dynamically later
+        if (!map.getSource("route")) {
+          map.addSource("route", {
+            type: "geojson",
+            data: { type: "FeatureCollection", features: lineFeatures },
+          });
+        }
 
-          if (!map.getLayer("route-glow")) {
-            map.addLayer({
-              id: "route-glow",
-              type: "line",
-              source: "route",
-              layout: { "line-cap": "round", "line-join": "round" },
-              paint: {
-                "line-color": "#FFFFFF",
-                "line-width": 14,
-                "line-opacity": 0.08,
-                "line-blur": 6,
-              },
-            });
-          }
+        if (!map.getLayer("route-glow")) {
+          map.addLayer({
+            id: "route-glow",
+            type: "line",
+            source: "route",
+            layout: { "line-cap": "round", "line-join": "round" },
+            paint: {
+              "line-color": "#FFFFFF",
+              "line-width": 14,
+              "line-opacity": 0.08,
+              "line-blur": 6,
+            },
+          });
+        }
 
-          if (!map.getLayer("route-line")) {
-            map.addLayer({
-              id: "route-line",
-              type: "line",
-              source: "route",
-              layout: { "line-cap": "round", "line-join": "round" },
-              paint: { "line-color": "#00E5FF", "line-width": 6 },
-            });
-          }
+        if (!map.getLayer("route-line")) {
+          map.addLayer({
+            id: "route-line",
+            type: "line",
+            source: "route",
+            layout: { "line-cap": "round", "line-join": "round" },
+            paint: { "line-color": "#00E5FF", "line-width": 6 },
+          });
         }
       };
 
       addRouteLayers();
+
+      // ── Fetch Missing Polyline via OSRM ─────────────────────────────────
+      // If the database only saved start/end points without the LineString, fetch it now!
+      if (lineFeatures.length === 0 && startFeature && endFeature && startFeature.geometry.type === "Point" && endFeature.geometry.type === "Point") {
+        const start = startFeature.geometry.coordinates as [number, number];
+        const end = endFeature.geometry.coordinates as [number, number];
+        const url = `https://router.project-osrm.org/route/v1/driving/${start[0]},${start[1]};${end[0]},${end[1]}?geometries=geojson&overview=full`;
+        
+        fetch(url)
+          .then((res) => res.json())
+          .then((data) => {
+            if (cancelled || data.code !== "Ok" || !data.routes || data.routes.length === 0) return;
+            const fetchedGeometry = data.routes[0].geometry;
+            const source = map.getSource("route") as mapboxgl.GeoJSONSource;
+            if (source) {
+              source.setData({
+                type: "FeatureCollection",
+                features: [
+                  {
+                    type: "Feature",
+                    geometry: fetchedGeometry,
+                    properties: {},
+                  },
+                ],
+              });
+            }
+          })
+          .catch((err) => console.error("[RouteViewer] OSRM fetch failed:", err));
+      }
 
       // Whenever the base style is swapped (e.g. dark mode toggle), the manual layers are lost.
       // We must re-add them when the new style finishes loading.
