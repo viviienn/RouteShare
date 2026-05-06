@@ -199,12 +199,12 @@ export default function RouteViewer({ geojson }: RouteViewerProps) {
 
       addRouteLayers();
 
-      // ── Fetch Missing Polyline via OSRM ─────────────────────────────────
+      // ── Fetch Missing Polyline via Mapbox Directions API ────────────────
       // If the database only saved start/end points without the LineString, fetch it now!
       if (lineFeatures.length === 0 && startFeature && endFeature && startFeature.geometry.type === "Point" && endFeature.geometry.type === "Point") {
         const start = startFeature.geometry.coordinates as [number, number];
         const end = endFeature.geometry.coordinates as [number, number];
-        const url = `https://router.project-osrm.org/route/v1/driving/${start[0]},${start[1]};${end[0]},${end[1]}?geometries=geojson&overview=full`;
+        const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${start[0]},${start[1]};${end[0]},${end[1]}?geometries=geojson&overview=full&access_token=${token}`;
         
         fetch(url)
           .then((res) => res.json())
@@ -213,6 +213,7 @@ export default function RouteViewer({ geojson }: RouteViewerProps) {
             const fetchedGeometry = data.routes[0].geometry;
             const source = map.getSource("route") as mapboxgl.GeoJSONSource;
             if (source) {
+              // 1. Add the fetched geometry as a source layer
               source.setData({
                 type: "FeatureCollection",
                 features: [
@@ -223,9 +224,23 @@ export default function RouteViewer({ geojson }: RouteViewerProps) {
                   },
                 ],
               });
+
+              // 2. Calculate the exact bounds of the new route geometry
+              const bounds = new mapboxgl.LngLatBounds();
+              fetchedGeometry.coordinates.forEach((coord: [number, number]) => {
+                bounds.extend(coord);
+              });
+              
+              // 3. Zoom and fit the map perfectly around the drawn route
+              map.fitBounds(bounds, {
+                padding: 100,
+                maxZoom: 15,
+                duration: 1500,
+                essential: true,
+              });
             }
           })
-          .catch((err) => console.error("[RouteViewer] OSRM fetch failed:", err));
+          .catch((err) => console.error("[RouteViewer] Directions API fetch failed:", err));
       }
 
       // Whenever the base style is swapped (e.g. dark mode toggle), the manual layers are lost.
