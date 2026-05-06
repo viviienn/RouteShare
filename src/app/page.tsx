@@ -76,7 +76,6 @@ export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [isDesktop, setIsDesktop] = useState(true);
   const [routeData, setRouteData] = useState<RouteUpdateData | null>(null);
-  const [showBanner, setShowBanner] = useState(true);
   const { theme, toggleTheme } = useTheme();
   const { enable3D, toggle3D } = useSettings();
 
@@ -478,27 +477,6 @@ export default function Home() {
           )}
         </AnimatePresence>
       </motion.div>
-      {/* Live Announcement Banner */}
-      <AnimatePresence>
-        {showBanner && (
-          <motion.div
-            initial={{ y: -40, opacity: 0, x: "-50%" }}
-            animate={{ y: 0, opacity: 1, x: "-50%" }}
-            exit={{ y: -40, opacity: 0, x: "-50%" }}
-            className="fixed top-2 left-1/2 z-50 bg-neutral-900/95 backdrop-blur-md border border-white/5 pl-4 pr-3 py-1 rounded-full shadow-xl flex items-center gap-3"
-          >
-            <span className="text-[10px] font-bold text-red-500 uppercase tracking-[0.2em] whitespace-nowrap">
-              v1.1.1 – Emergency security patch (Vercel leak)
-            </span>
-            <button 
-              onClick={() => setShowBanner(false)} 
-              className="hover:bg-white/10 rounded-full p-0.5 transition-colors"
-            >
-              <X className="w-3.5 h-3.5 text-neutral-600 hover:text-white" />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </main>
   );
 }

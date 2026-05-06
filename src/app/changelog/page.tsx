@@ -15,6 +15,27 @@ interface ChangelogEntry {
 
 const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "v1.2.0",
+    date: "May 6, 2026",
+    description: "Major feature update adding comprehensive Dark Mode, 3D Map manipulation, and Open Graph link previews.",
+    changes: [
+      {
+        category: "added",
+        items: [
+          "Dark Mode System: A new sleek dark mode toggle with persistent settings, warmer light mode colors, and dynamic map style updates.",
+          "3D Map Manipulation: Added a settings toggle allowing users to pitch and rotate the map in full 3D.",
+          "Open Graph Previews: Social links shared on Discord/iMessage now display a dynamically generated preview image of the specific route.",
+        ],
+      },
+      {
+        category: "removed",
+        items: [
+          "Live Announcement Banner: Removed the emergency security patch banner from the UI.",
+        ],
+      },
+    ],
+  },
+  {
     version: "v1.1.1",
     date: "April 21, 2026",
     description: "Emergency infrastructure patch following the Vercel environment variable security event.",
