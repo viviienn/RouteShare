@@ -69,12 +69,17 @@ export default function RouteViewer({ geojson }: RouteViewerProps) {
     }
   }, [enable3D, mapReady]);
 
+  const previousTheme = useRef<string | null>(null);
+
   useEffect(() => {
     if (mapRef.current && mapReady) {
-      const styleUrl = theme === "dark" 
-        ? "mapbox://styles/mapbox/dark-v11" 
-        : "mapbox://styles/mapbox/light-v11";
-      mapRef.current.setStyle(styleUrl);
+      if (previousTheme.current !== null && previousTheme.current !== theme) {
+        const styleUrl = theme === "dark" 
+          ? "mapbox://styles/mapbox/dark-v11" 
+          : "mapbox://styles/mapbox/light-v11";
+        mapRef.current.setStyle(styleUrl);
+      }
+      previousTheme.current = theme;
     }
   }, [theme, mapReady]);
 
@@ -150,7 +155,7 @@ export default function RouteViewer({ geojson }: RouteViewerProps) {
 
       // ── Separate feature types ──────────────────────────────────────────
       const lineFeatures = geojson.features.filter(
-        (f) => f.geometry && f.geometry.type === "LineString"
+        (f) => f.geometry && f.geometry.type === "LineString" && (f.geometry.coordinates as any[]).length > 0
       );
       const startFeature = geojson.features.find(
         (f) => f.geometry?.type === "Point" && f.properties?.markerType === "start"
