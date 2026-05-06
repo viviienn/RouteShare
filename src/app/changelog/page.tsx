@@ -15,6 +15,26 @@ interface ChangelogEntry {
 
 const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "v1.3.0",
+    date: "May 6, 2026",
+    description: "Map engine rewrite, layout optimizations, and 3D functionality.",
+    changes: [
+      {
+        category: "added",
+        items: [
+          "Dynamic Open Graph Previews: Social links now dynamically generate a custom map image showcasing the exact route path using the Mapbox Static API.",
+          "Live Announcement Banner: Re-introduced the top banner to keep users informed of major version bumps.",
+        ],
+      },
+      {
+        category: "fixed",
+        items: [
+          "London Flashbang Bug: Map initialization now calculates the coordinate bounding box prior to instantiation, instantly snapping to the route bounds instead of briefly flashing London.",
+        ],
+      },
+    ],
+  },
+  {
     version: "v1.2.0",
     date: "May 6, 2026",
     description: "Major feature update adding comprehensive Dark Mode, 3D Map manipulation, and Open Graph link previews.",

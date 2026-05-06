@@ -94,18 +94,51 @@ export default function RouteViewer({ geojson }: RouteViewerProps) {
 
     mapboxgl.accessToken = token;
 
+    // ── Pre-calculate Bounds ──────────────────────────────────────────────
+    let initialBounds: mapboxgl.LngLatBounds | undefined;
+    try {
+      const bounds = new mapboxgl.LngLatBounds();
+      let anyPoint = false;
+
+      geojson.features.forEach((feature) => {
+        if (!feature.geometry) return;
+        if (feature.geometry.type === "LineString") {
+          feature.geometry.coordinates.forEach((coord) => {
+            bounds.extend(coord as [number, number]);
+            anyPoint = true;
+          });
+        } else if (feature.geometry.type === "Point") {
+          bounds.extend(feature.geometry.coordinates as [number, number]);
+          anyPoint = true;
+        }
+      });
+
+      if (anyPoint) {
+        initialBounds = bounds;
+      }
+    } catch (boundsErr) {
+      console.warn("[RouteViewer] Initial bounds calculation failed:", boundsErr);
+    }
+
     // ── Initialize map ────────────────────────────────────────────────────
-    // Using explicit height/width guarantees.
-    const map = new mapboxgl.Map({
+    const mapOptions: mapboxgl.MapboxOptions = {
       container,
       style: theme === "dark" ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mapbox/light-v11",
-      center: [-0.1276, 51.5074], // Initial default
-      zoom: 12,
       pitch: enable3D ? 45 : 0,
       attributionControl: false,
       dragRotate: enable3D,
       keyboard: enable3D,
-    });
+    };
+
+    if (initialBounds) {
+      mapOptions.bounds = initialBounds;
+      mapOptions.fitBoundsOptions = { padding: 100, maxZoom: 15 };
+    } else {
+      mapOptions.center = [-0.1276, 51.5074]; // Fallback to London
+      mapOptions.zoom = 12;
+    }
+
+    const map = new mapboxgl.Map(mapOptions);
     if (!enable3D) map.touchZoomRotate.disableRotation();
     mapRef.current = map;
 
@@ -194,37 +227,6 @@ export default function RouteViewer({ geojson }: RouteViewerProps) {
         })
           .setLngLat([lng, lat])
           .addTo(map);
-      }
-
-      // ── Calculate Bounds and Frame ─────────────────────────────────────
-      try {
-        const bounds = new mapboxgl.LngLatBounds();
-        let anyPoint = false;
-
-        geojson.features.forEach((feature) => {
-          if (!feature.geometry) return;
-          if (feature.geometry.type === "LineString") {
-            feature.geometry.coordinates.forEach((coord) => {
-              bounds.extend(coord as [number, number]);
-              anyPoint = true;
-            });
-          } else if (feature.geometry.type === "Point") {
-            bounds.extend(feature.geometry.coordinates as [number, number]);
-            anyPoint = true;
-          }
-        });
-
-        if (anyPoint) {
-          console.log("[RouteViewer] Fitting bounds to route");
-          map.fitBounds(bounds, {
-            padding: 100,
-            maxZoom: 15,
-            duration: 1500,
-            essential: true,
-          });
-        }
-      } catch (boundsErr) {
-        console.warn("[RouteViewer] Bounds calculation failed:", boundsErr);
       }
 
       setMapReady(true);
