@@ -29,7 +29,7 @@ function createMarkerEl(color: string, label: string): HTMLElement {
     background:${color};color:white;font-size:11px;font-weight:700;
     padding:4px 10px;border-radius:20px;white-space:nowrap;
     font-family:-apple-system,sans-serif;box-shadow:0 3px 12px rgba(0,0,0,0.5);
-    margin-bottom:5px;letter-spacing:0.04em;border:1.5px solid rgba(255,255,255,0.3);
+    margin-bottom:14px;letter-spacing:0.04em;border:1.5px solid rgba(255,255,255,0.3);
   `;
   const pin = document.createElement("div");
   pin.style.cssText = `
@@ -144,7 +144,7 @@ export default function RouteViewer({ geojson }: RouteViewerProps) {
 
     map.addControl(new mapboxgl.NavigationControl(), "top-right");
 
-    map.on("load", () => {
+    map.on("load", async () => {
       if (cancelled) return;
       console.log("[RouteViewer] Map loaded, features to process:", geojson.features.length);
 
@@ -213,7 +213,11 @@ export default function RouteViewer({ geojson }: RouteViewerProps) {
         }
       };
 
-      addRouteLayers();
+      // Whenever the base style is swapped (e.g. dark mode toggle), the manual layers are lost.
+      // We must re-add them when the new style finishes loading.
+      map.on("style.load", () => {
+        if (!cancelled) addRouteLayers();
+      });
 
       // ── Fetch Missing Polyline via Mapbox Directions API ────────────────
       // If the database only saved start/end points without the LineString, fetch it now!
@@ -224,19 +228,18 @@ export default function RouteViewer({ geojson }: RouteViewerProps) {
         
         console.log("[RouteViewer] Missing LineString detected. Fetching driving route...");
 
-        fetch(url)
-          .then((res) => res.json())
-          .then((data) => {
-            if (cancelled) return;
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          
+          if (cancelled) return;
 
-            if (data.code !== "Ok" || !data.routes || data.routes.length === 0) {
-              console.error("[RouteViewer] Invalid route data from API. Code:", data.code);
-              return;
-            }
-
+          if (data.code !== "Ok" || !data.routes || data.routes.length === 0) {
+            console.error("[RouteViewer] Invalid route data from API. Code:", data.code, data);
+          } else {
             const fetchedGeometry = data.routes[0].geometry;
             
-            // 1. Update our local reference so it persists across style reloads
+            // Update our local reference so it persists across style reloads
             currentLineFeatures = [
               {
                 type: "Feature",
@@ -245,40 +248,29 @@ export default function RouteViewer({ geojson }: RouteViewerProps) {
               },
             ];
 
-            // 2. Safely apply the new data or re-add the layers entirely
-            if (map.isStyleLoaded()) {
-              const source = map.getSource("route") as mapboxgl.GeoJSONSource;
-              if (source) {
-                source.setData({
-                  type: "FeatureCollection",
-                  features: currentLineFeatures,
-                });
-              } else {
-                addRouteLayers();
-              }
-            }
-
-            // 3. Zoom and fit the map perfectly around the drawn route
+            // Calculate the exact bounds of the new route geometry
             const bounds = new mapboxgl.LngLatBounds();
             fetchedGeometry.coordinates.forEach((coord: [number, number]) => {
               bounds.extend(coord);
             });
             
+            // Zoom and fit the map perfectly around the drawn route
             map.fitBounds(bounds, {
               padding: 100,
               maxZoom: 15,
               duration: 1500,
               essential: true,
             });
-          })
-          .catch((err) => console.error("[RouteViewer] Directions API fetch failed:", err));
+          }
+        } catch (err) {
+          console.error("[RouteViewer] Directions API fetch failed:", err);
+        }
       }
 
-      // Whenever the base style is swapped (e.g. dark mode toggle), the manual layers are lost.
-      // We must re-add them when the new style finishes loading.
-      map.on("style.load", () => {
-        if (!cancelled) addRouteLayers();
-      });
+      // Now that the data is ready (fetched or locally available), add the layers
+      if (map.isStyleLoaded()) {
+        addRouteLayers();
+      }
 
       // ── Add markers ─────────────────────────────────────────────────────
       if (startFeature && startFeature.geometry.type === "Point") {
