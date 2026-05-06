@@ -9,6 +9,7 @@ import React, { useEffect, useRef, useImperativeHandle, forwardRef, useState } f
 import mapboxgl from "mapbox-gl";
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import { useTheme } from "@/hooks/useTheme";
+import { useSettings } from "@/hooks/useSettings";
 
 // ── Exported types ──────────────────────────────────────────────────────────
 export type ToolMode = "idle" | "set-start" | "set-end" | "draw";
@@ -119,6 +120,23 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
     // "locating" shows spinner; "ready" reveals the map
     const [locStatus, setLocStatus] = useState<"locating" | "ready">("locating");
     const { theme } = useTheme();
+    const { enable3D } = useSettings();
+
+    // ── 3D Interaction Sync ──────────────────────────────────────────────────
+    useEffect(() => {
+      const map = mapRef.current;
+      if (!map || !mapReadyRef.current) return;
+      if (enable3D) {
+        map.dragRotate.enable();
+        map.keyboard.enable();
+        map.touchZoomRotate.enableRotation();
+      } else {
+        map.dragRotate.disable();
+        map.keyboard.disable();
+        map.touchZoomRotate.disableRotation();
+        map.resetNorthPitch({ duration: 800 });
+      }
+    }, [enable3D]);
 
     useEffect(() => {
       if (mapRef.current && mapReadyRef.current) {
@@ -269,10 +287,15 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(
         style: theme === "dark" ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mapbox/light-v11",
         center: LONDON,
         zoom: 12,
-        pitch: 20,
+        pitch: enable3D ? 45 : 0, // dynamic start pitch
         attributionControl: false,
         clickTolerance: 15, // Greatly increased to prevent mobile wobbles acting as pans
+        dragRotate: enable3D,
+        keyboard: enable3D,
       });
+      if (!enable3D) {
+        map.touchZoomRotate.disableRotation();
+      }
       mapRef.current = map;
 
       // Ensure map resizes correctly if container dimensions change 

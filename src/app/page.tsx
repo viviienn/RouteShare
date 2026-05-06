@@ -10,6 +10,7 @@ import MapCanvas, {
 import Link from "next/link";
 import { saveRouteAction } from "./actions";
 import { useTheme } from "@/hooks/useTheme";
+import { useSettings } from "@/hooks/useSettings";
 import {
   Share2, Check, Copy, AlertCircle, Loader2,
   PencilLine, Trash2, MapPin, Crosshair, ChevronDown, ChevronUp, Route, Settings, FileText, X, Moon, Sun
@@ -77,6 +78,7 @@ export default function Home() {
   const [routeData, setRouteData] = useState<RouteUpdateData | null>(null);
   const [showBanner, setShowBanner] = useState(true);
   const { theme, toggleTheme } = useTheme();
+  const { enable3D, toggle3D } = useSettings();
 
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth >= 768);
@@ -335,19 +337,37 @@ export default function Home() {
       <div className="h-px bg-white/10 w-full" />
 
       <div>
-        <p className="text-sm font-semibold text-white mb-3">Appearance</p>
-        <button 
-          onClick={toggleTheme}
-          className="flex items-center justify-between w-full px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 active:bg-white/15 transition-all"
-        >
-          <div className="flex items-center gap-3">
-            {theme === "dark" ? <Moon className="w-5 h-5 text-cyan-400" /> : <Sun className="w-5 h-5 text-amber-400" />}
-            <span className="text-sm font-medium text-white">{theme === "dark" ? "Dark Mode" : "Light Mode"}</span>
-          </div>
-          <div className={`w-10 h-6 rounded-full p-1 transition-colors ${theme === "dark" ? "bg-cyan-500" : "bg-neutral-600"}`}>
-            <div className={`w-4 h-4 rounded-full bg-white transition-transform ${theme === "dark" ? "translate-x-4" : "translate-x-0"}`} />
-          </div>
-        </button>
+        <p className="text-sm font-semibold text-white mb-3">Appearance & Map</p>
+        <div className="flex flex-col gap-2">
+          <button 
+            onClick={toggleTheme}
+            className="flex items-center justify-between w-full px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 active:bg-white/15 transition-all"
+          >
+            <div className="flex items-center gap-3">
+              {theme === "dark" ? <Moon className="w-5 h-5 text-cyan-400" /> : <Sun className="w-5 h-5 text-amber-400" />}
+              <span className="text-sm font-medium text-white">{theme === "dark" ? "Dark Mode" : "Light Mode"}</span>
+            </div>
+            <div className={`w-10 h-6 rounded-full p-1 transition-colors ${theme === "dark" ? "bg-cyan-500" : "bg-neutral-600"}`}>
+              <div className={`w-4 h-4 rounded-full bg-white transition-transform ${theme === "dark" ? "translate-x-4" : "translate-x-0"}`} />
+            </div>
+          </button>
+
+          <button 
+            onClick={toggle3D}
+            className="flex items-center justify-between w-full px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 active:bg-white/15 transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <MapPin className={`w-5 h-5 ${enable3D ? "text-cyan-400" : "text-neutral-400"}`} />
+              <div className="flex flex-col items-start">
+                <span className="text-sm font-medium text-white">3D Map Manipulation</span>
+                <span className="text-[10px] text-neutral-400">Pitch & rotate gestures</span>
+              </div>
+            </div>
+            <div className={`w-10 h-6 rounded-full p-1 transition-colors ${enable3D ? "bg-cyan-500" : "bg-neutral-600"}`}>
+              <div className={`w-4 h-4 rounded-full bg-white transition-transform ${enable3D ? "translate-x-4" : "translate-x-0"}`} />
+            </div>
+          </button>
+        </div>
       </div>
 
       <div className="h-px bg-white/10 w-full" />

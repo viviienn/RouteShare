@@ -12,6 +12,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import OpenInMapsModal, { extractMapCoords } from "./OpenInMapsModal";
 import { useTheme } from "@/hooks/useTheme";
+import { useSettings } from "@/hooks/useSettings";
 
 interface RouteViewerProps {
   geojson: GeoJSON.FeatureCollection;
@@ -50,6 +51,23 @@ export default function RouteViewer({ geojson }: RouteViewerProps) {
 
   const { startCoord, endCoord, waypoints } = extractMapCoords(geojson);
   const { theme } = useTheme();
+  const { enable3D } = useSettings();
+
+  // ── 3D Interaction Sync ──────────────────────────────────────────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady) return;
+    if (enable3D) {
+      map.dragRotate.enable();
+      map.keyboard.enable();
+      map.touchZoomRotate.enableRotation();
+    } else {
+      map.dragRotate.disable();
+      map.keyboard.disable();
+      map.touchZoomRotate.disableRotation();
+      map.resetNorthPitch({ duration: 800 });
+    }
+  }, [enable3D, mapReady]);
 
   useEffect(() => {
     if (mapRef.current && mapReady) {
@@ -80,12 +98,15 @@ export default function RouteViewer({ geojson }: RouteViewerProps) {
     // Using explicit height/width guarantees.
     const map = new mapboxgl.Map({
       container,
-      style: "mapbox://styles/mapbox/dark-v11",
+      style: theme === "dark" ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mapbox/light-v11",
       center: [-0.1276, 51.5074], // Initial default
       zoom: 12,
-      pitch: 20,
+      pitch: enable3D ? 45 : 0,
       attributionControl: false,
+      dragRotate: enable3D,
+      keyboard: enable3D,
     });
+    if (!enable3D) map.touchZoomRotate.disableRotation();
     mapRef.current = map;
 
     map.addControl(new mapboxgl.NavigationControl(), "top-right");
@@ -229,7 +250,7 @@ export default function RouteViewer({ geojson }: RouteViewerProps) {
         position: "relative",
         width: "100vw",
         height: "100vh",
-        backgroundColor: theme === "dark" ? "#0a0a0a" : "#f5f5f5",
+        backgroundColor: theme === "dark" ? "#0a0a0a" : "#faf9f6",
         overflow: "hidden",
       }}
     >
