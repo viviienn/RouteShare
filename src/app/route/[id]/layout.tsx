@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     .eq("id", id)
     .single();
 
-  // Get the base URL for the application (ensure this is set in Vercel/Env)
+  // Get the base URL for the application
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://routeshare.vercel.app";
   const routeUrl = `${baseUrl}/route/${id}`;
 
@@ -44,23 +44,22 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       }
 
       // 3. Mapbox Static Images API supports precise overlays
-      // pin-s+color(lng,lat) for markers, path-width+color-opacity(encodedPolyline) for paths
-      const pathOverlay = polylineString ? `path-5+3B82F6-0.8(${encodeURIComponent(polylineString)})` : "";
+      // Restored opacity to '1' instead of '0.8' - Mapbox API can fail on decimals depending on encoding
+      const pathOverlay = polylineString ? `path-5+3B82F6-1(${encodeURIComponent(polylineString)})` : "";
       const startMarker = `pin-s+22C55E(${startCoord[0]},${startCoord[1]})`;
       const endMarker = `pin-s+EF4444(${endCoord[0]},${endCoord[1]})`;
       
       const overlays = [startMarker, endMarker, pathOverlay].filter(Boolean).join(",");
 
-      // The URL MUST be absolute for scrapers. 
-      // We remove the @2x to ensure the file size stays well under Snapchat's ~300KB limit
-      ogImageUrl = `https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/${overlays}/auto/1200x630?access_token=${token}&padding=100`;
+      // Restored the @2x parameter - removing it likely caused the Mapbox API to return a degraded image that scrapers rejected
+      ogImageUrl = `https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/${overlays}/auto/1200x630@2x?access_token=${token}&padding=100`;
     }
   }
 
   const title = "Shared Route - RouteShare";
   const description = "I created a custom route! Tap to view the interactive map, directions, and path.";
 
-  // 4. Return the comprehensive metadata. Next.js injects this into the <head>
+  // 4. Return the comprehensive metadata
   return {
     metadataBase: new URL(baseUrl),
     title,
@@ -74,7 +73,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       images: [
         {
           url: ogImageUrl,
-          secureUrl: ogImageUrl, // Snapchat requires explicitly secure URLs
+          secureUrl: ogImageUrl, // Safely include the Snapchat requirement
           width: 1200,
           height: 630,
           alt: "Route preview map showing the start and end destinations",
@@ -85,7 +84,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       card: "summary_large_image",
       title,
       description,
-      images: [ogImageUrl], // Twitter prefers the large image format
+      images: [ogImageUrl],
     },
   };
 }
