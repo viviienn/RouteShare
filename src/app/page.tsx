@@ -489,7 +489,7 @@ export default function Home() {
             className="fixed top-2 left-1/2 z-50 bg-neutral-900/95 backdrop-blur-md border border-white/5 pl-4 pr-3 py-1 rounded-full shadow-xl flex items-center gap-3"
           >
             <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-[0.2em] whitespace-nowrap">
-              v1.3.0 – Map Engine Rewrite & 3D Tools
+              v1.3.1 – Universal OG Link Previews
             </span>
             <button 
               onClick={() => setShowBanner(false)} 

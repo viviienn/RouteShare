@@ -52,6 +52,7 @@ This project exists to show what's possible when you let users draw their own ro
 - ⚙️ **Route Maker Modes**: Choose between *Automatic* (fetches real-world driving paths via OSRM) or *Manual* drawing modes.
 - 🎨 **Interactive Drawing & Snapping**: High-contrast drawing tools with endpoints that magnetically snap to your pins.
 - 📌 **Custom Markers**: Explicit "Driver Start" (Blue) and "Destination" (Red) pins.
+- 🔗 **Universal Link Previews**: Share a route and a rich, dynamically generated map image will instantly preview on iMessage, Discord, WhatsApp, Snapchat, and X.
 - 🔗 **Instant Link Generation**: Save your route to Supabase and get a shareable URL in one click.
 - 📜 **Detailed Changelog**: Track all updates and bugfixes natively via the `/changelog` route.
 - 📱 **Mobile Optimized**: Fully responsive interface designed for use in the field.

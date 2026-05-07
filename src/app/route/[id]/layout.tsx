@@ -11,7 +11,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     .eq("id", id)
     .single();
 
-  let ogImageUrl = "https://yourdomain.com/default-og.png"; // Fallback image
+  // Get the base URL for the application (ensure this is set in Vercel/Env)
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://routeshare.vercel.app";
+  const routeUrl = `${baseUrl}/route/${id}`;
+
+  let ogImageUrl = `${baseUrl}/default-og.png`; // Fallback image
 
   // 2. Build the Mapbox Static Image URL if data exists
   if (data?.geojson_data && data.geojson_data.features) {
@@ -19,17 +23,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     
     let polylineString = "";
     
-    // Check if the route has a pre-existing LineString
-    const lineFeature = data.geojson_data.features.find((f: any) => f.geometry.type === "LineString");
-    
     const startFeature = data.geojson_data.features.find((f: any) => f.geometry.type === "Point" && f.properties?.markerType === "start");
     const endFeature = data.geojson_data.features.find((f: any) => f.geometry.type === "Point" && f.properties?.markerType === "end");
-
-    if (lineFeature && lineFeature.geometry.coordinates) {
-      // If we have a LineString, we can encode it or we can just fetch from API to get it encoded directly.
-      // For simplicity, if we don't have encodePolyline, we can just fetch it anyway or rely on points.
-      // But we removed encodePolyline, so we will fetch the polyline directly!
-    }
 
     if (startFeature && endFeature) {
       const startCoord = startFeature.geometry.coordinates;
@@ -50,35 +45,47 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
       // 3. Mapbox Static Images API supports precise overlays
       // pin-s+color(lng,lat) for markers, path-width+color-opacity(encodedPolyline) for paths
-      const pathOverlay = polylineString ? `path-5+00E5FF-1(${encodeURIComponent(polylineString)})` : "";
-      const startMarker = `pin-s+3B82F6(${startCoord[0]},${startCoord[1]})`;
+      const pathOverlay = polylineString ? `path-5+3B82F6-0.8(${encodeURIComponent(polylineString)})` : "";
+      const startMarker = `pin-s+22C55E(${startCoord[0]},${startCoord[1]})`;
       const endMarker = `pin-s+EF4444(${endCoord[0]},${endCoord[1]})`;
       
       const overlays = [startMarker, endMarker, pathOverlay].filter(Boolean).join(",");
 
-      ogImageUrl = `https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/${overlays}/auto/1200x630@2x?access_token=${token}&padding=100`;
+      // The URL MUST be absolute for scrapers. 
+      // We remove the @2x to ensure the file size stays well under Snapchat's ~300KB limit
+      ogImageUrl = `https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/${overlays}/auto/1200x630?access_token=${token}&padding=100`;
     }
   }
 
-  // 4. Return the metadata. Next.js injects this into the <head>
+  const title = "Shared Route - RouteShare";
+  const description = "I created a custom route! Tap to view the interactive map, directions, and path.";
+
+  // 4. Return the comprehensive metadata. Next.js injects this into the <head>
   return {
-    title: "View My Route",
-    description: "I created a custom route. Tap to view it on the map!",
+    metadataBase: new URL(baseUrl),
+    title,
+    description,
     openGraph: {
-      title: "Shared Route",
-      description: "Interactive map route.",
+      title,
+      description,
+      url: routeUrl,
+      siteName: "RouteShare",
+      type: "website",
       images: [
         {
           url: ogImageUrl,
+          secureUrl: ogImageUrl, // Snapchat requires explicitly secure URLs
           width: 1200,
           height: 630,
-          alt: "Map route preview",
+          alt: "Route preview map showing the start and end destinations",
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      images: [ogImageUrl],
+      title,
+      description,
+      images: [ogImageUrl], // Twitter prefers the large image format
     },
   };
 }

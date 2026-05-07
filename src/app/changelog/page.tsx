@@ -15,6 +15,20 @@ interface ChangelogEntry {
 
 const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "v1.3.1",
+    date: "May 7, 2026",
+    description: "Universal Open Graph link previews and metadata optimization.",
+    changes: [
+      {
+        category: "fixed",
+        items: [
+          "Snapchat Previews: Added strict og:image:secure_url metadata tags and removed @2x multipliers from static payloads to respect strict file size limits on specific social platforms.",
+          "Universal Metadata: Standardized Next.js generateMetadata fields to ensure route preview images render flawlessly across iMessage, Discord, WhatsApp, Telegram, and Snapchat.",
+        ],
+      },
+    ],
+  },
+  {
     version: "v1.3.0",
     date: "May 6, 2026",
     description: "Map engine rewrite, layout optimizations, and 3D functionality.",
