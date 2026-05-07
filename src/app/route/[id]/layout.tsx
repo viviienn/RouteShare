@@ -11,8 +11,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     .eq("id", id)
     .single();
 
-  // Baseline base URL logic that works
+  // Get the base URL for the application (ensure this is set in Vercel/Env)
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://routeshare.vercel.app";
+  const routeUrl = `${baseUrl}/route/${id}`;
+
   let ogImageUrl = `${baseUrl}/default-og.png`; // Fallback image
 
   // 2. Build the Mapbox Static Image URL if data exists
@@ -41,36 +43,47 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         console.error("Error fetching polyline for OG image:", err);
       }
 
-      // Stable baseline overlay logic
-      const pathOverlay = polylineString ? `path-5+00E5FF-1(${encodeURIComponent(polylineString)})` : "";
-      const startMarker = `pin-s+3B82F6(${startCoord[0]},${startCoord[1]})`;
+      // 3. Mapbox Static Images API supports precise overlays
+      // pin-s+color(lng,lat) for markers, path-width+color-opacity(encodedPolyline) for paths
+      const pathOverlay = polylineString ? `path-5+3B82F6-0.8(${encodeURIComponent(polylineString)})` : "";
+      const startMarker = `pin-s+22C55E(${startCoord[0]},${startCoord[1]})`;
       const endMarker = `pin-s+EF4444(${endCoord[0]},${endCoord[1]})`;
       
       const overlays = [startMarker, endMarker, pathOverlay].filter(Boolean).join(",");
 
-      // Stable absolute URL generation
+      // The URL MUST be absolute for scrapers.
       ogImageUrl = `https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/${overlays}/auto/1200x630@2x?access_token=${token}&padding=100`;
     }
   }
 
-  // 4. Return ONLY the strict, stable baseline metadata
+  const title = "Shared Route - RouteShare";
+  const description = "I created a custom route! Tap to view the interactive map, directions, and path.";
+
+  // 4. Return the comprehensive metadata. Next.js injects this into the <head>
   return {
     metadataBase: new URL(baseUrl),
-    title: "View My Route",
-    description: "I created a custom route. Tap to view it on the map!",
+    title,
+    description,
     openGraph: {
-      title: "Shared Route",
-      description: "Interactive map route.",
-      url: `${baseUrl}/route/${id}`,
+      title,
+      description,
+      url: routeUrl,
+      siteName: "RouteShare",
       type: "website",
       images: [
         {
           url: ogImageUrl,
           width: 1200,
           height: 630,
-          alt: "Map route preview",
+          alt: "Route preview map showing the start and end destinations",
         },
       ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImageUrl], // Twitter prefers the large image format
     },
   };
 }
